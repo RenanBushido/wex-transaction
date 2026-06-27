@@ -1,0 +1,30 @@
+# Build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+
+# Environment / secrets
+.env
+.env.*
+
+# Database data (keep folder tracked via .gitkeep)
+database/*
+!database/.gitkeep
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

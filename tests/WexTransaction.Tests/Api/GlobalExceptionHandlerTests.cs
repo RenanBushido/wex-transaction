@@ -1,0 +1,115 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using WexTransaction.Api.Exceptions;
+using WexTransaction.Domain.Exceptions;
+
+namespace WexTransaction.Tests.Api;
+
+public class GlobalExceptionHandlerTests
+{
+    private static GlobalExceptionHandler CreateHandler(IProblemDetailsService? problemDetailsService = null)
+    {
+        var svc = problemDetailsService ?? new AlwaysTrueProblemDetailsService();
+        return new GlobalExceptionHandler(svc);
+    }
+
+    private static HttpContext CreateHttpContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_InvalidAmountException_Returns400AndTrue()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new InvalidAmountException("Amount must be positive.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_InvalidDescriptionException_Returns400AndTrue()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new InvalidDescriptionException("Description too long.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_InvalidTransactionDateException_Returns400AndTrue()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new InvalidTransactionDateException("Date must be UTC.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_BaseDomainException_Returns422AndTrue()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new DomainException("Generic domain error.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_CurrencyConversionUnavailableException_Returns422AndTrue()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new CurrencyConversionUnavailableException("No rate available within 6 months.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_GenericException_ReturnsFalse()
+    {
+        var handler = CreateHandler();
+        var context = CreateHttpContext();
+        var exception = new InvalidOperationException("Some infrastructure error.");
+
+        var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        Assert.False(handled);
+    }
+
+    private sealed class AlwaysTrueProblemDetailsService : IProblemDetailsService
+    {
+        public ValueTask<bool> TryWriteAsync(ProblemDetailsContext context)
+        {
+            context.HttpContext.Response.ContentType = "application/problem+json";
+            return ValueTask.FromResult(true);
+        }
+
+        public ValueTask WriteAsync(ProblemDetailsContext context)
+        {
+            context.HttpContext.Response.ContentType = "application/problem+json";
+            return ValueTask.CompletedTask;
+        }
+    }
+}

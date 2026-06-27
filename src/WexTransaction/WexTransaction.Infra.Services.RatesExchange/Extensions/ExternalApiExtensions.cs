@@ -1,0 +1,36 @@
+namespace WexTransaction.Infra.Services.RatesExchange.Extensions;
+
+public static class ExternalApiExtensions
+{
+    public static IServiceCollection AddExternalApis(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var treasuryApiUrl = configuration["TreasuryApi:BaseUrl"]
+            ?? throw new InvalidOperationException("Treasury API URL configuration 'TreasuryApi:BaseUrl' not found.");
+
+        var timeoutSeconds = configuration.GetValue<int?>("TreasuryApi:TimeoutSeconds") ?? 30;
+
+        services
+            .AddHttpClient<ITreasuryExchangeRateClient>(client =>
+            {
+                client.BaseAddress = new Uri(treasuryApiUrl);
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            })
+            .ConfigureHttpClient(client =>
+            {
+                client.BaseAddress = new Uri(treasuryApiUrl);
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+
+        services.AddScoped(sp =>
+        {
+            var httpClient = sp.GetRequiredService<HttpClient>();
+            return RestService.For<ITreasuryExchangeRateClient>(httpClient);
+        });
+
+        services.AddScoped<IExchangeRateProvider, TreasuryExchangeRateProvider>();
+
+        return services;
+    }
+}

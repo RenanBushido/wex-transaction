@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:15.18-alpine3.23
+    container_name: wex-postgres
+    environment:
+      POSTGRES_DB: wex
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    restart: unless-stopped

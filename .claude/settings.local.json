@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add *)",
+      "Bash(dotnet test *)",
+      "Bash(openspec status *)",
+      "Bash(sed -i 's/^- \\\\[ \\\\] 3\\\\.1 /- [x] 3.1 /' /home/renan79/projetos/wex-transaction/openspec/changes/camada-dominio-requisito-1/tasks.md)",
+      "Bash(sed -i 's/^- \\\\[ \\\\] 5\\\\.3 /- [x] 5.3 /' /home/renan79/projetos/wex-transaction/openspec/changes/camada-dominio-requisito-1/tasks.md)",
+      "Bash(sed -i 's/^- \\\\[ \\\\] 6\\\\.1 /- [x] 6.1 /' /home/renan79/projetos/wex-transaction/openspec/changes/camada-dominio-requisito-1/tasks.md)",
+      "Bash(sed -i 's/^- \\\\[ \\\\] 6\\\\.2 /- [x] 6.2 /' /home/renan79/projetos/wex-transaction/openspec/changes/camada-dominio-requisito-1/tasks.md)",
+      "Bash(openspec instructions *)",
+      "Bash(dotnet build *)"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../../tests/WexTransaction.Tests/WexTransaction.Tests.csproj" />
+  <Project Path="WexTransaction.Api/WexTransaction.Api.csproj" />
+  <Project Path="WexTransaction.Application/WexTransaction.Application.csproj" />
+  <Project Path="WexTransaction.Domain/WexTransaction.Domain.csproj" />
+  <Project Path="WexTransaction.Infra.Database/WexTransaction.Infra.Database.csproj" />
+  <Project Path="WexTransaction.Infra.Services.RatesExchange/WexTransaction.Infra.Services.RatesExchange.csproj" />
+</Solution>
