@@ -418,6 +418,234 @@ Application/
 └── GlobalUsings.cs
 ```
 
+## Event Sourcing Readiness (Phase 2B)
+
+Domain events model significant state changes in the system. Phase 2B establishes event abstractions and publisher infrastructure for future Event Sourcing implementation without requiring persistence.
+
+### IDomainEvent Port (Domain/Interfaces)
+
+```csharp
+public interface IDomainEvent
+{
+    Guid AggregateId { get; }              // The aggregate that triggered this event
+    DateTimeOffset OccurredAt { get; }     // When event occurred (UTC)
+    string EventType { get; }              // Event type identifier (e.g., "TransactionCreated")
+}
+```
+
+### TransactionCreatedEvent (Application/Events/DomainEvents)
+
+```csharp
+public record TransactionCreatedEvent(
+    Guid AggregateId,
+    DateTimeOffset OccurredAt,
+    string Description,
+    decimal Amount,
+    DateTime Date
+) : IDomainEvent
+{
+    public string EventType => "TransactionCreated";
+}
+```
+
+### IEventPublisher Port (Domain/Interfaces)
+
+```csharp
+public interface IEventPublisher
+{
+    Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken);
+    Task PublishMultipleAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken);
+}
+```
+
+### NoOpEventPublisher Implementation (Application/Events)
+
+Phase 2B uses no-op publisher (events discarded). Phase 3 will implement EventStorePublisher for persistence.
+
+```csharp
+public class NoOpEventPublisher : IEventPublisher
+{
+    public Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
+    {
+        // TODO: Phase 3 - Replace with EventStorePublisher for persistence
+        return Task.CompletedTask;
+    }
+
+    public Task PublishMultipleAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+}
+```
+
+---
+
+## MediatR Pipeline Behaviors (Phase 2B)
+
+Pipeline behaviors centralize cross-cutting concerns (logging, validation, error handling) without cluttering individual handlers.
+
+### Behavior Execution Order
+
+```
+Request → LoggingBehavior → ValidationBehavior → Handler → ErrorHandlingBehavior → Response
+```
+
+### LoggingBehavior
+
+Logs request entry, execution time, and outcome. Uses Stopwatch for precise timing (<2ms overhead target).
+
+```csharp
+public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+{
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var requestType = typeof(TRequest).Name;
+        
+        Debug.WriteLine($"Processing request: {requestType}");
+        
+        try
+        {
+            var response = await next();
+            stopwatch.Stop();
+            Debug.WriteLine($"Request completed in {stopwatch.ElapsedMilliseconds}ms");
+            return response;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            Debug.WriteLine($"Request failed after {stopwatch.ElapsedMilliseconds}ms: {ex.Message}");
+            throw;
+        }
+    }
+}
+```
+
+### ValidationBehavior (Extensible Placeholder)
+
+Phase 2B: Basic structure with logging.
+Phase 2C+: Will integrate FluentValidation validators.
+
+```csharp
+public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+{
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    {
+        Debug.WriteLine($"Validating request: {typeof(TRequest).Name}");
+        // TODO: Phase 2C - Add FluentValidation integration
+        return await next();
+    }
+}
+```
+
+### ErrorHandlingBehavior (Extensible Placeholder)
+
+Phase 2B: Catches and logs exceptions.
+Phase 2C+: Will map domain exceptions to application layer exceptions.
+
+```csharp
+public class ErrorHandlingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+{
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await next();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Exception in handler: {ex.Message}");
+            // TODO: Phase 2C+ - Map exceptions to application layer
+            throw;
+        }
+    }
+}
+```
+
+### Pipeline Registration (ApplicationExtensions)
+
+```csharp
+services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly);
+    config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+    config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+    config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
+});
+
+services.AddScoped<IEventPublisher, NoOpEventPublisher>();
+```
+
+---
+
+## Event Publishing Pattern (Phase 2B)
+
+### Command Handler: Event Publishing
+
+Commands publish domain events after successful operations.
+
+```csharp
+public class SaveTransactionCommandHandler : IRequestHandler<CreateTransactionCommand, Guid>
+{
+    private readonly ITransactionRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IEventPublisher _eventPublisher;
+
+    public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
+    {
+        var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
+        await _repository.SavePurchaseTransaction(transaction);
+        await _unitOfWork.Commit(cancellationToken);
+
+        // Publish domain event for downstream subscribers
+        var evt = new TransactionCreatedEvent(
+            AggregateId: transaction.Id,
+            OccurredAt: DateTimeOffset.UtcNow,
+            Description: (string)transaction.Description,
+            Amount: (decimal)transaction.Amount,
+            Date: DateTime.UtcNow
+        );
+        await _eventPublisher.PublishAsync(evt, cancellationToken);
+
+        return transaction.Id;
+    }
+}
+```
+
+### Query Handler: NO Event Publishing
+
+Queries represent read operations without state changes. Events belong in command handlers only.
+
+```csharp
+public class GetTransactionIdQueryHandler : IRequestHandler<GetTransactionIdQuery, QueryTransactionResponse?>
+{
+    private readonly ITransactionQueryService _queryService;
+    private readonly IEventPublisher _eventPublisher;  // Injected for Phase 2C+ use
+
+    public async Task<QueryTransactionResponse?> Handle(GetTransactionIdQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _queryService.GetTransactionWithConversionAsync(
+            request.TransactionId,
+            request.Country,
+            request.Currency,
+            cancellationToken);
+
+        if (result == null)
+            return null;
+
+        // Map to DTO and return
+        return new QueryTransactionResponse(...);
+        
+        // TODO: Phase 2C+ - Publish TransactionConvertedEvent if audit trail needed
+    }
+}
+```
+
+---
+
 ## Development Roadmap (Phases)
 
 ### Phase 2A (Current) ✓
@@ -427,11 +655,13 @@ Application/
 - Backward compatibility with use case facades
 - Documentation and examples
 
-### Phase 2B (Deferred)
-- Event abstractions (IDomainEvent, IEventPublisher)
-- Domain event implementations
-- Pipeline behaviors (validation, logging, error handling)
-- Transactional outbox pattern
+### Phase 2B (Current) ✓
+- Event abstractions (IDomainEvent, IEventPublisher in Domain/Interfaces)
+- Concrete domain events (TransactionCreatedEvent in Application/Events)
+- No-op event publisher implementation
+- MediatR pipeline behaviors (Logging, Validation, Error Handling)
+- Event publishing integration in command handlers
+- Documentation and examples
 
 ### Phase 2C (Future)
 - API controller refactoring to use MediatR directly

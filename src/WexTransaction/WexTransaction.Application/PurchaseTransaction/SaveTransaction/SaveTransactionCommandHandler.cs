@@ -1,13 +1,17 @@
 namespace WexTransaction.Application.PurchaseTransaction.SaveTransaction;
 
+using WexTransaction.Application.Events.DomainEvents;
+
 public class SaveTransactionCommandHandler(
     ITransactionRepository repository,
     IUnitOfWork unitOfWork,
-    IMapper mapper) : IRequestHandler<CreateTransactionCommand, Guid>
+    IMapper mapper,
+    IEventPublisher eventPublisher) : IRequestHandler<CreateTransactionCommand, Guid>
 {
     private readonly ITransactionRepository _repository = repository;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
+    private readonly IEventPublisher _eventPublisher = eventPublisher;
 
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
@@ -15,7 +19,14 @@ public class SaveTransactionCommandHandler(
         await _repository.SavePurchaseTransaction(transaction);
         await _unitOfWork.Commit(cancellationToken);
 
-        // TODO: Phase 2B - publish TransactionCreatedEvent via injected IEventPublisher (deferred)
+        var transactionCreatedEvent = new TransactionCreatedEvent(
+            AggregateId: transaction.Id,
+            OccurredAt: DateTimeOffset.UtcNow,
+            Description: (string)transaction.Description,
+            Amount: (decimal)transaction.Amount,
+            Date: DateTime.UtcNow
+        );
+        await _eventPublisher.PublishAsync(transactionCreatedEvent, cancellationToken);
 
         return transaction.Id;
     }

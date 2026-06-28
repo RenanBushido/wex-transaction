@@ -7,7 +7,17 @@ public static class ApplicationExtensions
         services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
         services.AddMediatR(config =>
-            config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly));
+        {
+            config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly);
+            config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
+        });
+
+        // Event Publisher (Port implementation from Application layer)
+        // Phase 2B: No-op implementation (events not persisted)
+        // Phase 3: Replace with EventStorePublisher for persistence
+        services.AddScoped<IEventPublisher, NoOpEventPublisher>();
 
         // Query Services (Port implementations from Application layer)
         services.AddScoped<ITransactionQueryService, TransactionQueryService>();

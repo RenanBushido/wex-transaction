@@ -6,11 +6,16 @@ using WexTransaction.Domain.Interfaces;
 /// Query Handler: Recupera transação com conversão de moeda.
 /// Orquestração: Delegada para ITransactionQueryService (Domain port implementation).
 /// Responsabilidade: Mapear query para resultado de negócio via serviço.
+///
+/// Note: IEventPublisher injected for future query events (Phase 2C+).
+/// Phase 2B: Queries do NOT publish events (read operations only).
 /// </summary>
 public class GetTransactionIdQueryHandler(
-    ITransactionQueryService queryService) : IRequestHandler<GetTransactionIdQuery, QueryTransactionResponse?>
+    ITransactionQueryService queryService,
+    IEventPublisher eventPublisher) : IRequestHandler<GetTransactionIdQuery, QueryTransactionResponse?>
 {
     private readonly ITransactionQueryService _queryService = queryService;
+    private readonly IEventPublisher _eventPublisher = eventPublisher;
 
     public async Task<QueryTransactionResponse?> Handle(
         GetTransactionIdQuery request,
@@ -34,6 +39,6 @@ public class GetTransactionIdQueryHandler(
             TaxRate: result.TaxRate,
             ConvertedValue: result.ConvertedValue);
 
-        // TODO: Phase 2B - publish TransactionConvertedEvent via injected IEventPublisher (deferred)
+        // TODO: Phase 2C+ - Publish TransactionConvertedEvent if audit trail needed
     }
 }
