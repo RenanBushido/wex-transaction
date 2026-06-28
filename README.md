@@ -40,7 +40,7 @@ date of the purchase.
 - [x] The project will be divided into layers, adhering to the architectural design.
 - [x] There is no information regarding the volume of requests, but the application will be prepared.
 - [x] Build the **Domain** layer.
-- [ ] Build the **Application** layer.
+- [x] Build the **Application** layer.
 - [x] Build the **Infrastructure** layer.
 - [ ] Build the **Presentation** layer.
 
@@ -70,7 +70,7 @@ date of the purchase.
 
 ## Application Layer
 
--   
+-   Implemented 2 ways  
     
 
 Domain Layer - Estrutura & Organização:

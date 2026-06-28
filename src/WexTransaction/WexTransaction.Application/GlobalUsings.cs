@@ -1,9 +1,8 @@
-global using System.Diagnostics;
 global using System.Reflection;
-global using FluentValidation;
 global using MediatR;
 global using Microsoft.Extensions.DependencyInjection;
-global using WexTransaction.Application.Behaviors;
 global using WexTransaction.Domain.Entities;
 global using WexTransaction.Domain.Interfaces;
 global using WexTransaction.Domain.Services;
+global using Microsoft.Extensions.Logging;
+global using WexTransaction.Application.Behaviors;

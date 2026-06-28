@@ -114,12 +114,12 @@ All `IServiceCollection` extensions for middleware registration, service configu
 
 | Extension | Purpose | Example |
 |-----------|---------|---------|
-| `DependencyInjectionExtensions.cs` | Application layer services, AutoMapper setup, use cases | Registers AutoMapper for Entity-DTO mapping |
-| `PersistenceExtensions.cs` | EF Core, DbContext, repositories, unit of work | Registers DbContext, repositories |
-| `ExternalApiExtensions.cs` | Refit clients, external API integrations | Registers Treasury API client |
-| `MiddlewareExtensions.cs` | Middlewares, exception handlers, filters | Adds exception handler, logging middleware |
-| `AuthenticationExtensions.cs` | Authentication, authorization, policies | Configures JWT, auth schemes |
-| `LoggingExtensions.cs` | Logging configuration, Serilog setup | Configures logging providers |
+| `DependencyInjectionExtensions.cs`    | Application layer services, AutoMapper setup, use cases   | Registers AutoMapper for Entity-DTO mapping   |
+| `PersistenceExtensions.cs`            | EF Core, DbContext, repositories, unit of work            | Registers DbContext, repositories             |
+| `ExternalApiExtensions.cs`            | Refit clients, external API integrations                  | Registers Treasury API client                 |
+| `MiddlewareExtensions.cs`             | Middlewares, exception handlers, filters                  | Adds exception handler, logging middleware    |
+| `AuthenticationExtensions.cs`         | Authentication, authorization, policies                   | Configures JWT, auth schemes                  |
+| `LoggingExtensions.cs`                | Logging configuration, Serilog setup                      | Configures logging providers                  |
 
 ### Example Implementation
 
@@ -255,7 +255,7 @@ Domain layer uses value objects (Money, TransactionDescription) with implicit op
 
 ---
 
-## CQRS Pattern (Phase 2A)
+## CQRS Pattern
 
 The Application layer implements Command Query Responsibility Segregation (CQRS) using MediatR to separate read and write operations, improving scalability and testability.
 
@@ -275,25 +275,25 @@ Infrastructure (Repository, External APIs)
 
 ### Command Pattern (Write Operations)
 
-**CreateTransactionCommand** - Handles purchase transaction creation
+**SaveTransactionCommand** - Handles purchase transaction creation
 
 ```csharp
-public record CreateTransactionCommand(
+public record SaveTransactionCommand(
     string Description,
     DateTime Date,
     decimal Amount
 ) : IRequest<Guid>;
 ```
 
-**CreateTransactionCommandHandler** - Processes the command
+**SaveTransactionCommandHandler** - Processes the command
 
 ```csharp
-public class CreateTransactionCommandHandler : IRequestHandler<CreateTransactionCommand, Guid>
+public class SaveTransactionCommandHandler : IRequestHandler<SaveTransactionCommand, Guid>
 {
     private readonly ITransactionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
     
-    public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(SaveTransactionCommand request, CancellationToken cancellationToken)
     {
         var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
         await _repository.AddAsync(transaction);
@@ -306,26 +306,26 @@ public class CreateTransactionCommandHandler : IRequestHandler<CreateTransaction
 
 ### Query Pattern (Read Operations)
 
-**GetTransactionQuery** - Retrieves and converts transaction details
+**GetPurchaseTransaction** - Retrieves and converts transaction details
 
 ```csharp
-public record GetTransactionQuery(
+public record GetPurchaseTransactionRequest(
     Guid TransactionId,
     string Country,
     string Currency
-) : IRequest<QueryTransactionResponse?>;
+) : IRequest<GetPurchaseTransactionResponse?>;
 ```
 
 **GetTransactionQueryHandler** - Processes the query
 
 ```csharp
-public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, QueryTransactionResponse?>
+public class GetTransactionQueryHandler : IRequestHandler<GetPurchaseTransactionRequest, GetPurchaseTransactionResponse?>
 {
     private readonly ITransactionRepository _repository;
     private readonly IExchangeRateProvider _exchangeRateProvider;
     private readonly IMapper _mapper;
     
-    public async Task<QueryTransactionResponse?> Handle(GetTransactionQuery request, CancellationToken cancellationToken)
+    public async Task<GetPurchaseTransactionResponse?> Handle(GetPurchaseTransactionRequest request, CancellationToken cancellationToken)
     {
         var transaction = await _repository.GetByIdAsync(request.TransactionId);
         if (transaction == null)
@@ -334,7 +334,7 @@ public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, Q
         var exchangeRates = await _exchangeRateProvider.GetExchangeRatesAsync(request.Country, request.Currency);
         var selectedRate = ExchangeRateSelector.SelectRate((decimal)transaction.Amount, transaction.TransactionDate, exchangeRates);
         
-        var response = _mapper.Map<QueryTransactionResponse>(transaction);
+        var response = _mapper.Map<GetPurchaseTransactionResponse>(transaction);
         response = response with
         {
             TaxRate = selectedRate.Rate,
@@ -346,7 +346,7 @@ public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, Q
 }
 ```
 
-## MediatR Integration (Phase 2A)
+## MediatR Integration
 
 MediatR serves as the central mediator for all command and query processing, decoupling the API layer from application logic.
 
@@ -359,16 +359,14 @@ public static class ApplicationExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Register AutoMapper
-        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        
         
         // Register MediatR with assembly scanning for handlers
         services.AddMediatR(config =>
-            config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly));
-        
-        // Register use case facades for backward compatibility
-        services.AddScoped<ICreateTransactionUseCase, CreateTransactionUseCase>();
-        services.AddScoped<IQueryTransactionUseCase, GetTransactionUseCase>();
+        {
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            config.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));
+        });
         
         return services;
     }
@@ -379,7 +377,7 @@ public static class ApplicationExtensions
 ```
 Application/
 ├── Behaviors/
-│   └── CreateTransactionCommand.cs
+│   └── UnhandledExceptionBehaviour.cs
 ├── Extensions/
 │   └── ApplicationExtensions.cs
 ├── UseCases/
@@ -403,83 +401,13 @@ Pipeline behaviors centralize cross-cutting concerns (logging, validation, error
 Request → LoggingBehavior → ValidationBehavior → Handler → ErrorHandlingBehavior → Response
 ```
 
-### LoggingBehavior
-
-Logs request entry, execution time, and outcome. Uses Stopwatch for precise timing (<2ms overhead target).
-
-```csharp
-public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
-{
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        var requestType = typeof(TRequest).Name;
-        
-        Debug.WriteLine($"Processing request: {requestType}");
-        
-        try
-        {
-            var response = await next();
-            stopwatch.Stop();
-            Debug.WriteLine($"Request completed in {stopwatch.ElapsedMilliseconds}ms");
-            return response;
-        }
-        catch (Exception ex)
-        {
-            stopwatch.Stop();
-            Debug.WriteLine($"Request failed after {stopwatch.ElapsedMilliseconds}ms: {ex.Message}");
-            throw;
-        }
-    }
-}
-```
-
-### ValidationBehavior (Extensible Placeholder)
-
-```csharp
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
-{
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-    {
-        Debug.WriteLine($"Validating request: {typeof(TRequest).Name}");
-        return await next();
-    }
-}
-```
-
-### ErrorHandlingBehavior
-
-```csharp
-public class ErrorHandlingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
-{
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await next();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Exception in handler: {ex.Message}");
-            // TODO: Phase 2C+ - Map exceptions to application layer
-            throw;
-        }
-    }
-}
-```
-
 ### Pipeline Registration (ApplicationExtensions)
 
 ```csharp
 services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-    config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-    config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-    config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
+    config.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));
 });
 ```
 
@@ -491,16 +419,11 @@ services.AddMediatR(config =>
 - Core CQRS architecture with MediatR
 - Commands and Queries abstractions
 - Command and Query handlers
-- MediatR Pipeline Behaviors (Logging, Validation, Error Handling)
 - Documentation and examples
-
-### Phase 2B (Future)
 - API controller refactoring to use MediatR directly
 - Remove dependency on use case facades
 - FluentValidation integration for request validation
 - Exception mapping to application-specific responses
-
-### Phase 3+ (Future)
 - Saga patterns for complex workflows
 - Separate read/write models if scaling requires
 - Event Sourcing (if needed for audit trails)
