@@ -1,6 +1,6 @@
 namespace WexTransaction.Application.Commands;
 
-public record CreateTransactionCommand(
+public sealed record CreateTransactionCommand(
     string Description,
     DateTime Date,
     decimal Amount

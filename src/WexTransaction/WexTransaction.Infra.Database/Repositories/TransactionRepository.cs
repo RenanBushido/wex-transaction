@@ -14,11 +14,6 @@ public class TransactionRepository(WexTransactionDbContext context) : BaseReposi
         return await _context.PurchaseTransactions.FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    public async Task AddAsync(PurchaseTransaction transaction)
-    {
-        await _context.PurchaseTransactions.AddAsync(transaction);
-    }
-
     public async Task SavePurchaseTransaction(PurchaseTransaction transaction)
     {
         await _context.PurchaseTransactions.AddAsync(transaction);

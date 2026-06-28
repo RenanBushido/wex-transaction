@@ -4,7 +4,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<PurchaseTransaction, QueryTransactionResponse>()
+        CreateMap<Domain.Entities.PurchaseTransaction, QueryTransactionResponse>()
             .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => (string)src.Description))
             .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.TransactionDate))

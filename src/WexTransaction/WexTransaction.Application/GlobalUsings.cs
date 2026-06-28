@@ -1,16 +1,15 @@
 global using System;
 global using System.Collections.Generic;
-global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
-
 global using AutoMapper;
 global using MediatR;
-
 global using WexTransaction.Application.Commands;
 global using WexTransaction.Application.Dtos;
-global using WexTransaction.Application.Handlers;
-global using WexTransaction.Application.Queries;
+global using WexTransaction.Application.Mappings;
+global using WexTransaction.Application.PurchaseTransaction.GetByTransactionId;
+global using WexTransaction.Application.PurchaseTransaction.SaveTransaction;
 global using WexTransaction.Application.Services;
-global using WexTransaction.Domain.Entities;
-global using WexTransaction.Domain.ValueObjects;
+global using Microsoft.Extensions.DependencyInjection;
+global using WexTransaction.Domain.Interfaces;
+global using WexTransaction.Domain.Services;

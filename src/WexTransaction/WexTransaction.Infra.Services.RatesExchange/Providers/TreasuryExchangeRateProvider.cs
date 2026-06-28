@@ -2,10 +2,14 @@ namespace WexTransaction.Infra.Services.RatesExchange.Providers;
 
 public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : IExchangeRateProvider
 {
+    #region Variables
     private readonly ITreasuryExchangeRateClient _client = client;
     private readonly ConcurrentDictionary<string, CachedRates> _cache = new();
     private readonly TimeSpan _cacheTtl = TimeSpan.FromHours(1);
 
+    #endregion
+
+    #region Public Methods
     public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync(string country, string currency)
     {
         var cacheKey = $"{country}_{currency}";
@@ -58,6 +62,9 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
         }
     }
 
+    #endregion
+
+    #region Private Methods
     private class CachedRates(List<ExchangeRate> rates, DateTime cachedAt)
     {
         public List<ExchangeRate> Rates { get; } = rates;
@@ -65,4 +72,6 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
 
         public bool IsExpired => DateTime.UtcNow - CachedAt > TimeSpan.FromHours(1);
     }
+
+    #endregion
 }
