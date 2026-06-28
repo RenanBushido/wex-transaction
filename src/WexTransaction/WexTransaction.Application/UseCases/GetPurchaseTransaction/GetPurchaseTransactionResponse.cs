@@ -1,6 +1,6 @@
-namespace WexTransaction.Application.Dtos;
+namespace WexTransaction.Application.UseCases.GetPurchaseTransaction;
 
-public record QueryTransactionResponse(
+public record GetPurchaseTransactionResponse(
     Guid TransactionId,
     string Description,
     DateTime Date,

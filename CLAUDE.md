@@ -379,108 +379,26 @@ public static class ApplicationExtensions
     }
 }
 ```
-
-### Backward Compatibility (Optional Facades)
-
-Existing use case interfaces are retained as optional facades that delegate to MediatR, enabling gradual migration from the old pattern:
-
-```csharp
-public class CreateTransactionUseCase : ICreateTransactionUseCase
-{
-    private readonly IMediator _mediator;
-    
-    public async Task<Guid> ExecuteAsync(CreateTransactionRequest request, CancellationToken cancellationToken = default)
-    {
-        var command = new CreateTransactionCommand(request.Description, request.Date, request.Amount);
-        return await _mediator.Send(command, cancellationToken);
-    }
-}
-```
-
 ### Directory Structure
 
 ```
 Application/
-├── Commands/
+├── Behaviors/
 │   └── CreateTransactionCommand.cs
-├── Queries/
-│   └── GetTransactionQuery.cs
-├── Handlers/
-│   ├── CreateTransactionCommandHandler.cs
-│   └── GetTransactionQueryHandler.cs
-├── Services/
-│   ├── CreateTransactionUseCase.cs (facade)
-│   └── GetTransactionUseCase.cs (facade)
-├── Dtos/
-├── Mappings/
 ├── Extensions/
 │   └── ApplicationExtensions.cs
+├── UseCases/
+|   |__GetPurchaseTransaction
+|   |    |__GetPurchaseTransactionHandler
+|   |    |__GetPurchaseTransactionRequest
+|   |    |__GetPurchaseTransactionResponse
+|   |__SavePurchaseTransaction
+|        |__SaveTransactionCommand
+|        |__SaveTransactionCommandHandler
 └── GlobalUsings.cs
 ```
 
-## Event Sourcing Readiness (Phase 2B)
-
-Domain events model significant state changes in the system. Phase 2B establishes event abstractions and publisher infrastructure for future Event Sourcing implementation without requiring persistence.
-
-### IDomainEvent Port (Domain/Interfaces)
-
-```csharp
-public interface IDomainEvent
-{
-    Guid AggregateId { get; }              // The aggregate that triggered this event
-    DateTimeOffset OccurredAt { get; }     // When event occurred (UTC)
-    string EventType { get; }              // Event type identifier (e.g., "TransactionCreated")
-}
-```
-
-### TransactionCreatedEvent (Application/Events/DomainEvents)
-
-```csharp
-public record TransactionCreatedEvent(
-    Guid AggregateId,
-    DateTimeOffset OccurredAt,
-    string Description,
-    decimal Amount,
-    DateTime Date
-) : IDomainEvent
-{
-    public string EventType => "TransactionCreated";
-}
-```
-
-### IEventPublisher Port (Domain/Interfaces)
-
-```csharp
-public interface IEventPublisher
-{
-    Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken);
-    Task PublishMultipleAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken);
-}
-```
-
-### NoOpEventPublisher Implementation (Application/Events)
-
-Phase 2B uses no-op publisher (events discarded). Phase 3 will implement EventStorePublisher for persistence.
-
-```csharp
-public class NoOpEventPublisher : IEventPublisher
-{
-    public Task PublishAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
-    {
-        // TODO: Phase 3 - Replace with EventStorePublisher for persistence
-        return Task.CompletedTask;
-    }
-
-    public Task PublishMultipleAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
-}
-```
-
----
-
-## MediatR Pipeline Behaviors (Phase 2B)
+## MediatR Pipeline Behaviors
 
 Pipeline behaviors centralize cross-cutting concerns (logging, validation, error handling) without cluttering individual handlers.
 
@@ -524,9 +442,6 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
 
 ### ValidationBehavior (Extensible Placeholder)
 
-Phase 2B: Basic structure with logging.
-Phase 2C+: Will integrate FluentValidation validators.
-
 ```csharp
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
@@ -534,16 +449,12 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         Debug.WriteLine($"Validating request: {typeof(TRequest).Name}");
-        // TODO: Phase 2C - Add FluentValidation integration
         return await next();
     }
 }
 ```
 
-### ErrorHandlingBehavior (Extensible Placeholder)
-
-Phase 2B: Catches and logs exceptions.
-Phase 2C+: Will map domain exceptions to application layer exceptions.
+### ErrorHandlingBehavior
 
 ```csharp
 public class ErrorHandlingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
@@ -570,49 +481,42 @@ public class ErrorHandlingBehavior<TRequest, TResponse> : IPipelineBehavior<TReq
 ```csharp
 services.AddMediatR(config =>
 {
-    config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly);
+    config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
     config.AddOpenBehavior(typeof(LoggingBehavior<,>));
     config.AddOpenBehavior(typeof(ValidationBehavior<,>));
     config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
 });
-
-services.AddScoped<IEventPublisher, NoOpEventPublisher>();
 ```
 
 ---
-
-## Event Publishing Pattern (Phase 2B)
-
 ### Command Handler: Event Publishing
 
 Commands publish domain events after successful operations.
 
 ```csharp
-public class SaveTransactionCommandHandler : IRequestHandler<CreateTransactionCommand, Guid>
+public class SaveTransactionCommandHandler(
+    ITransactionRepository repository,
+    IUnitOfWork unitOfWork) : IRequestHandler<SaveTransactionCommand, Guid>
 {
-    private readonly ITransactionRepository _repository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IEventPublisher _eventPublisher;
+    #region Variables
+    private readonly ITransactionRepository _repository = repository;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    
+    #endregion
 
-    public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
+    #region Public Methods
+    public async Task<Guid> Handle(SaveTransactionCommand request, CancellationToken cancellationToken)
     {
         var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
         await _repository.SavePurchaseTransaction(transaction);
         await _unitOfWork.Commit(cancellationToken);
 
-        // Publish domain event for downstream subscribers
-        var evt = new TransactionCreatedEvent(
-            AggregateId: transaction.Id,
-            OccurredAt: DateTimeOffset.UtcNow,
-            Description: (string)transaction.Description,
-            Amount: (decimal)transaction.Amount,
-            Date: DateTime.UtcNow
-        );
-        await _eventPublisher.PublishAsync(evt, cancellationToken);
-
         return transaction.Id;
     }
+
+    #endregion
 }
+
 ```
 
 ### Query Handler: NO Event Publishing
@@ -620,28 +524,41 @@ public class SaveTransactionCommandHandler : IRequestHandler<CreateTransactionCo
 Queries represent read operations without state changes. Events belong in command handlers only.
 
 ```csharp
-public class GetTransactionIdQueryHandler : IRequestHandler<GetTransactionIdQuery, QueryTransactionResponse?>
+public sealed class GetPurchaseTransactionHandler(
+    ITransactionRepository repository,
+    IExchangeRateProvider exchangeRate
+) : IRequestHandler<GetPurchaseTransactionRequest, GetPurchaseTransactionResponse>
 {
-    private readonly ITransactionQueryService _queryService;
-    private readonly IEventPublisher _eventPublisher;  // Injected for Phase 2C+ use
+    #region Variables
 
-    public async Task<QueryTransactionResponse?> Handle(GetTransactionIdQuery request, CancellationToken cancellationToken)
+    private readonly ITransactionRepository _repository = repository;
+    private readonly IExchangeRateProvider _exchangeRate = exchangeRate;
+
+    #endregion
+
+    #region Public Method
+    public async Task<GetPurchaseTransactionResponse> Handle(GetPurchaseTransactionRequest request, CancellationToken cancellationToken)
     {
-        var result = await _queryService.GetTransactionWithConversionAsync(
-            request.TransactionId,
-            request.Country,
-            request.Currency,
-            cancellationToken);
+        var transaction = await _repository.GetByIdAsync(request.TransactionId);
 
-        if (result == null)
-            return null;
+        if(transaction is null) return null!;
 
-        // Map to DTO and return
-        return new QueryTransactionResponse(...);
-        
-        // TODO: Phase 2C+ - Publish TransactionConvertedEvent if audit trail needed
+        var exchangeRates = await _exchangeRate.GetExchangeRatesAsync(request.Country, request.Currency);
+        var convertResult = ExchangeRateSelector.Convert(transaction, exchangeRates);
+
+        return new GetPurchaseTransactionResponse(
+            TransactionId: transaction.Id,
+            Description: transaction.Description,
+            Date: convertResult.TransactionDate.Date,
+            Amount: transaction.Amount,
+            TaxRate: convertResult.ExchangeRateUsed,
+            ConvertedValue: convertResult.ConvertedAmount
+        );
     }
+
+    #endregion
 }
+
 ```
 
 ---
@@ -652,15 +569,6 @@ public class GetTransactionIdQueryHandler : IRequestHandler<GetTransactionIdQuer
 - Core CQRS architecture with MediatR
 - Commands and Queries abstractions
 - Command and Query handlers
-- Backward compatibility with use case facades
-- Documentation and examples
-
-### Phase 2B (Current) ✓
-- Event abstractions (IDomainEvent, IEventPublisher in Domain/Interfaces)
-- Concrete domain events (TransactionCreatedEvent in Application/Events)
-- No-op event publisher implementation
-- MediatR pipeline behaviors (Logging, Validation, Error Handling)
-- Event publishing integration in command handlers
 - Documentation and examples
 
 ### Phase 2C (Future)
@@ -668,7 +576,6 @@ public class GetTransactionIdQueryHandler : IRequestHandler<GetTransactionIdQuer
 - Remove dependency on use case facades
 
 ### Phase 3+ (Future)
-- Event Sourcing persistence
 - Saga patterns for complex workflows
 - Separate read/write models if scaling requires
 

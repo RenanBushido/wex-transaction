@@ -1,5 +1,3 @@
-using WexTransaction.Domain.ValueObjects;
-
 namespace WexTransaction.Tests.Domain.ValueObjects;
 
 public class ConvertedTransactionResultTests

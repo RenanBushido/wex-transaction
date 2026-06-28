@@ -1,12 +1,4 @@
 namespace WexTransaction.Tests.Infrastructure.Providers;
-
-using Moq;
-using WexTransaction.Application.Services;
-using WexTransaction.Domain.Exceptions;
-using WexTransaction.Domain.ValueObjects;
-using WexTransaction.Infra.Services.RatesExchange.Clients;
-using WexTransaction.Infra.Services.RatesExchange.Providers;
-
 public class TreasuryExchangeRateProviderTests
 {
     private static readonly DateTimeOffset ValidDate = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);

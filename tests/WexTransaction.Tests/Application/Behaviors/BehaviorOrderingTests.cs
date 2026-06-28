@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Application.Behaviors;
 
-using System.Collections.Generic;
-using MediatR;
-using Xunit;
-using WexTransaction.Application.Behaviors;
-using WexTransaction.Application.PurchaseTransaction.SaveTransaction;
-
 /// <summary>
 /// Test: Verify pipeline behavior execution order.
 /// Expected order: LoggingBehavior → ValidationBehavior → Handler → ErrorHandlingBehavior

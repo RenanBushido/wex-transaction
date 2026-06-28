@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Application.Behaviors;
 
-using MediatR;
-using Xunit;
-using WexTransaction.Application.Behaviors;
-using WexTransaction.Application.Commands;
-using WexTransaction.Application.PurchaseTransaction.SaveTransaction;
-
 /// <summary>
 /// Test: LoggingBehavior outputs expected timing information.
 /// </summary>
@@ -15,8 +9,8 @@ public class LoggingBehaviorTests
     public async Task LoggingBehavior_ExecutesSuccessfully()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var responseHandled = false;
 
         // Act
@@ -37,8 +31,8 @@ public class LoggingBehaviorTests
     public async Task LoggingBehavior_HandlesExceptionsAndRethrows()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var testException = new InvalidOperationException("Test error");
 
         // Act
@@ -58,8 +52,8 @@ public class LoggingBehaviorTests
     public async Task LoggingBehavior_MeasuresExecutionTime()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
 
         // Act
         var startTime = DateTime.UtcNow;
@@ -82,8 +76,8 @@ public class LoggingBehaviorTests
     public async Task LoggingBehavior_SupportsAsyncOperations()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var executionCount = 0;
 
         // Act

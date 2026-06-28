@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Application.Behaviors;
 
-using MediatR;
-using Xunit;
-using WexTransaction.Application.Behaviors;
-using WexTransaction.Application.Commands;
-using WexTransaction.Application.PurchaseTransaction.SaveTransaction;
-
 /// <summary>
 /// Test: ValidationBehavior extensible placeholder.
 /// </summary>
@@ -15,8 +9,8 @@ public class ValidationBehaviorTests
     public async Task ValidationBehavior_PassesThroughToNextHandler()
     {
         // Arrange
-        var behavior = new ValidationBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new ValidationBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var handlerExecuted = false;
 
         // Act
@@ -37,8 +31,8 @@ public class ValidationBehaviorTests
     public async Task ValidationBehavior_DoesNotThrowOnValidRequest()
     {
         // Arrange
-        var behavior = new ValidationBehavior<CreateTransactionCommand, Guid>();
-        var validRequest = new CreateTransactionCommand("Valid", DateTime.UtcNow, 50m);
+        var behavior = new ValidationBehavior<SaveTransactionCommand, Guid>();
+        var validRequest = new SaveTransactionCommand("Valid", DateTime.UtcNow, 50m);
 
         // Act & Assert - Should not throw
         async Task<Guid> Next()
@@ -54,11 +48,11 @@ public class ValidationBehaviorTests
     public async Task ValidationBehavior_IsPlaceholderForPhase2C()
     {
         // Arrange
-        var behavior = new ValidationBehavior<CreateTransactionCommand, Guid>();
+        var behavior = new ValidationBehavior<SaveTransactionCommand, Guid>();
 
         // Act & Assert - Verify it's a placeholder (passes through without validation)
         // Phase 2C will integrate FluentValidation
-        var request = new CreateTransactionCommand("", DateTime.UtcNow, -100m); // Invalid data
+        var request = new SaveTransactionCommand("", DateTime.UtcNow, -100m); // Invalid data
 
         async Task<Guid> Next()
         {
@@ -80,8 +74,8 @@ public class ErrorHandlingBehaviorTests
     public async Task ErrorHandlingBehavior_PassesThroughToNextHandler()
     {
         // Arrange
-        var behavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var handlerExecuted = false;
 
         // Act
@@ -102,8 +96,8 @@ public class ErrorHandlingBehaviorTests
     public async Task ErrorHandlingBehavior_CatchesAndRethrowsExceptions()
     {
         // Arrange
-        var behavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         var testException = new InvalidOperationException("Handler error");
 
         // Act
@@ -123,7 +117,7 @@ public class ErrorHandlingBehaviorTests
     public async Task ErrorHandlingBehavior_IsPlaceholderForPhase2C()
     {
         // Arrange
-        var behavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
+        var behavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
 
         // Act & Assert - Verify it's a placeholder (catches and re-throws)
         // Phase 2C will map exceptions
@@ -136,7 +130,7 @@ public class ErrorHandlingBehaviorTests
         // Should re-throw because Phase 2B has no exception mapping
         await Assert.ThrowsAsync<ApplicationException>(
             () => behavior.Handle(
-                new CreateTransactionCommand("Test", DateTime.UtcNow, 100m),
+                new SaveTransactionCommand("Test", DateTime.UtcNow, 100m),
                 ThrowingNext,
                 CancellationToken.None));
     }
@@ -145,7 +139,7 @@ public class ErrorHandlingBehaviorTests
     public async Task ErrorHandlingBehavior_HandlesMultipleExceptionTypes()
     {
         // Arrange
-        var behavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
+        var behavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
 
         // Test InvalidOperationException
         var invalidOpException = new InvalidOperationException("Invalid");
@@ -156,7 +150,7 @@ public class ErrorHandlingBehaviorTests
 
         var ex1 = await Assert.ThrowsAsync<InvalidOperationException>(
             () => behavior.Handle(
-                new CreateTransactionCommand("Test", DateTime.UtcNow, 100m),
+                new SaveTransactionCommand("Test", DateTime.UtcNow, 100m),
                 FailingNextInvalidOp,
                 CancellationToken.None));
         Assert.Equal(invalidOpException.Message, ex1.Message);
@@ -170,7 +164,7 @@ public class ErrorHandlingBehaviorTests
 
         var ex2 = await Assert.ThrowsAsync<ArgumentNullException>(
             () => behavior.Handle(
-                new CreateTransactionCommand("Test", DateTime.UtcNow, 100m),
+                new SaveTransactionCommand("Test", DateTime.UtcNow, 100m),
                 FailingNextArgNull,
                 CancellationToken.None));
         Assert.Equal(argNullException.Message, ex2.Message);
@@ -184,7 +178,7 @@ public class ErrorHandlingBehaviorTests
 
         var ex3 = await Assert.ThrowsAsync<Exception>(
             () => behavior.Handle(
-                new CreateTransactionCommand("Test", DateTime.UtcNow, 100m),
+                new SaveTransactionCommand("Test", DateTime.UtcNow, 100m),
                 FailingNextGeneric,
                 CancellationToken.None));
         Assert.Equal(genericException.Message, ex3.Message);

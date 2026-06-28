@@ -1,20 +1,18 @@
-using WexTransaction.Domain.ValueObjects;
-
 namespace WexTransaction.Tests.Domain.ValueObjects;
 
 public class ExchangeRateTests
 {
-    private static readonly DateTimeOffset ValidDate = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset _validDate = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
     public void Constructor_ValidInputs_CreatesExchangeRate()
     {
-        var rate = new ExchangeRate("Brazil", "Real", 5.25m, ValidDate);
+        var rate = new ExchangeRate("Brazil", "Real", 5.25m, _validDate);
 
         Assert.Equal("Brazil", rate.Country);
         Assert.Equal("Real", rate.Currency);
         Assert.Equal(5.25m, rate.Rate);
-        Assert.Equal(ValidDate, rate.EffectiveDate);
+        Assert.Equal(_validDate, rate.EffectiveDate);
     }
 
     [Theory]
@@ -23,7 +21,7 @@ public class ExchangeRateTests
     [InlineData(-0.01)]
     public void Constructor_NonPositiveRate_ThrowsArgumentOutOfRangeException(decimal rate)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeRate("Brazil", "Real", rate, ValidDate));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeRate("Brazil", "Real", rate, _validDate));
     }
 
     [Fact]
@@ -40,7 +38,7 @@ public class ExchangeRateTests
     [InlineData("   ")]
     public void Constructor_NullOrEmptyCountry_ThrowsArgumentException(string? country)
     {
-        Assert.Throws<ArgumentException>(() => new ExchangeRate(country!, "Real", 5.25m, ValidDate));
+        Assert.Throws<ArgumentException>(() => new ExchangeRate(country!, "Real", 5.25m, _validDate));
     }
 
     [Theory]
@@ -49,14 +47,14 @@ public class ExchangeRateTests
     [InlineData("   ")]
     public void Constructor_NullOrEmptyCurrency_ThrowsArgumentException(string? currency)
     {
-        Assert.Throws<ArgumentException>(() => new ExchangeRate("Brazil", currency!, 5.25m, ValidDate));
+        Assert.Throws<ArgumentException>(() => new ExchangeRate("Brazil", currency!, 5.25m, _validDate));
     }
 
     [Fact]
     public void TwoInstancesWithSameValues_AreEqual()
     {
-        var rate1 = new ExchangeRate("Brazil", "Real", 5.25m, ValidDate);
-        var rate2 = new ExchangeRate("Brazil", "Real", 5.25m, ValidDate);
+        var rate1 = new ExchangeRate("Brazil", "Real", 5.25m, _validDate);
+        var rate2 = new ExchangeRate("Brazil", "Real", 5.25m, _validDate);
 
         Assert.Equal(rate1, rate2);
     }

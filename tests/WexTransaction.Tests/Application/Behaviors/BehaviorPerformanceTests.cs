@@ -1,12 +1,5 @@
 namespace WexTransaction.Tests.Application.Behaviors;
 
-using System.Diagnostics;
-using MediatR;
-using Xunit;
-using WexTransaction.Application.Behaviors;
-using WexTransaction.Application.Commands;
-using WexTransaction.Application.PurchaseTransaction.SaveTransaction;
-
 /// <summary>
 /// Test: Behavior performance overhead measurement.
 /// Target: < 5ms total overhead per request
@@ -17,8 +10,8 @@ public class BehaviorPerformanceTests
     public async Task LoggingBehavior_PerformanceUnder2ms()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         const int iterations = 100;
         var stopwatch = Stopwatch.StartNew();
 
@@ -44,8 +37,8 @@ public class BehaviorPerformanceTests
     public async Task ValidationBehavior_PerformanceUnder1ms()
     {
         // Arrange
-        var behavior = new ValidationBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new ValidationBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         const int iterations = 100;
         var stopwatch = Stopwatch.StartNew();
 
@@ -71,8 +64,8 @@ public class BehaviorPerformanceTests
     public async Task ErrorHandlingBehavior_PerformanceUnder1ms()
     {
         // Arrange
-        var behavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         const int iterations = 100;
         var stopwatch = Stopwatch.StartNew();
 
@@ -98,11 +91,11 @@ public class BehaviorPerformanceTests
     public async Task AllBehaviors_TotalOverheadUnder5ms()
     {
         // Arrange - Simulate all behaviors in pipeline
-        var loggingBehavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var validationBehavior = new ValidationBehavior<CreateTransactionCommand, Guid>();
-        var errorHandlingBehavior = new ErrorHandlingBehavior<CreateTransactionCommand, Guid>();
+        var loggingBehavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var validationBehavior = new ValidationBehavior<SaveTransactionCommand, Guid>();
+        var errorHandlingBehavior = new ErrorHandlingBehavior<SaveTransactionCommand, Guid>();
 
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
         const int iterations = 50;
         var stopwatch = Stopwatch.StartNew();
 
@@ -137,8 +130,8 @@ public class BehaviorPerformanceTests
     public async Task SingleBehavior_DoesNotBlockThread()
     {
         // Arrange
-        var behavior = new LoggingBehavior<CreateTransactionCommand, Guid>();
-        var request = new CreateTransactionCommand("Test", DateTime.UtcNow, 100m);
+        var behavior = new LoggingBehavior<SaveTransactionCommand, Guid>();
+        var request = new SaveTransactionCommand("Test", DateTime.UtcNow, 100m);
 
         // Act
         var task1 = behavior.Handle(request, async () => Guid.NewGuid(), CancellationToken.None);

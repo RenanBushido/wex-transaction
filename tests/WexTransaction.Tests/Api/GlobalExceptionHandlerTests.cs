@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using WexTransaction.Api.Exceptions;
-using WexTransaction.Domain.Exceptions;
-
 namespace WexTransaction.Tests.Api;
 
 public class GlobalExceptionHandlerTests
