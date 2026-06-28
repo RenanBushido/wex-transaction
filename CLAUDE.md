@@ -292,15 +292,12 @@ public class CreateTransactionCommandHandler : IRequestHandler<CreateTransaction
 {
     private readonly ITransactionRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
     
     public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
     {
         var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
         await _repository.AddAsync(transaction);
         await _unitOfWork.Commit(cancellationToken);
-        
-        // TODO: Phase 2B - publish TransactionCreatedEvent via injected IEventPublisher (deferred)
         
         return transaction.Id;
     }
@@ -343,8 +340,6 @@ public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, Q
             TaxRate = selectedRate.Rate,
             ConvertedValue = (decimal)transaction.Amount * selectedRate.Rate
         };
-        
-        // TODO: Phase 2B - publish TransactionConvertedEvent via injected IEventPublisher (deferred)
         
         return response;
     }
@@ -489,79 +484,6 @@ services.AddMediatR(config =>
 ```
 
 ---
-### Command Handler: Event Publishing
-
-Commands publish domain events after successful operations.
-
-```csharp
-public class SaveTransactionCommandHandler(
-    ITransactionRepository repository,
-    IUnitOfWork unitOfWork) : IRequestHandler<SaveTransactionCommand, Guid>
-{
-    #region Variables
-    private readonly ITransactionRepository _repository = repository;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    
-    #endregion
-
-    #region Public Methods
-    public async Task<Guid> Handle(SaveTransactionCommand request, CancellationToken cancellationToken)
-    {
-        var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
-        await _repository.SavePurchaseTransaction(transaction);
-        await _unitOfWork.Commit(cancellationToken);
-
-        return transaction.Id;
-    }
-
-    #endregion
-}
-
-```
-
-### Query Handler: NO Event Publishing
-
-Queries represent read operations without state changes. Events belong in command handlers only.
-
-```csharp
-public sealed class GetPurchaseTransactionHandler(
-    ITransactionRepository repository,
-    IExchangeRateProvider exchangeRate
-) : IRequestHandler<GetPurchaseTransactionRequest, GetPurchaseTransactionResponse>
-{
-    #region Variables
-
-    private readonly ITransactionRepository _repository = repository;
-    private readonly IExchangeRateProvider _exchangeRate = exchangeRate;
-
-    #endregion
-
-    #region Public Method
-    public async Task<GetPurchaseTransactionResponse> Handle(GetPurchaseTransactionRequest request, CancellationToken cancellationToken)
-    {
-        var transaction = await _repository.GetByIdAsync(request.TransactionId);
-
-        if(transaction is null) return null!;
-
-        var exchangeRates = await _exchangeRate.GetExchangeRatesAsync(request.Country, request.Currency);
-        var convertResult = ExchangeRateSelector.Convert(transaction, exchangeRates);
-
-        return new GetPurchaseTransactionResponse(
-            TransactionId: transaction.Id,
-            Description: transaction.Description,
-            Date: convertResult.TransactionDate.Date,
-            Amount: transaction.Amount,
-            TaxRate: convertResult.ExchangeRateUsed,
-            ConvertedValue: convertResult.ConvertedAmount
-        );
-    }
-
-    #endregion
-}
-
-```
-
----
 
 ## Development Roadmap (Phases)
 
@@ -569,15 +491,19 @@ public sealed class GetPurchaseTransactionHandler(
 - Core CQRS architecture with MediatR
 - Commands and Queries abstractions
 - Command and Query handlers
+- MediatR Pipeline Behaviors (Logging, Validation, Error Handling)
 - Documentation and examples
 
-### Phase 2C (Future)
+### Phase 2B (Future)
 - API controller refactoring to use MediatR directly
 - Remove dependency on use case facades
+- FluentValidation integration for request validation
+- Exception mapping to application-specific responses
 
 ### Phase 3+ (Future)
 - Saga patterns for complex workflows
 - Separate read/write models if scaling requires
+- Event Sourcing (if needed for audit trails)
 
 ---
 
