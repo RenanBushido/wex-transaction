@@ -1,0 +1,1 @@
+namespace WexTransaction.Application.Queries;

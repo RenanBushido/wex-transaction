@@ -14,6 +14,7 @@ It is an API with two endpoints that stores purchase transactions and offers a q
 -   xUnit
 -   Polly
 -   Refit
+-   AutoMapper (for Entity-DTO mapping)
 
 ---
 
@@ -113,7 +114,7 @@ All `IServiceCollection` extensions for middleware registration, service configu
 
 | Extension | Purpose | Example |
 |-----------|---------|---------|
-| `DependencyInjectionExtensions.cs` | Application layer services, use cases, handlers | Registers Application layer services |
+| `DependencyInjectionExtensions.cs` | Application layer services, AutoMapper setup, use cases | Registers AutoMapper for Entity-DTO mapping |
 | `PersistenceExtensions.cs` | EF Core, DbContext, repositories, unit of work | Registers DbContext, repositories |
 | `ExternalApiExtensions.cs` | Refit clients, external API integrations | Registers Treasury API client |
 | `MiddlewareExtensions.cs` | Middlewares, exception handlers, filters | Adds exception handler, logging middleware |
@@ -171,6 +172,23 @@ public static class ExternalApiExtensions
 }
 ```
 
+**`Extensions/DependencyInjectionExtensions.cs` (Application Layer)**
+
+```csharp
+namespace WexTransaction.Application.Extensions;
+
+public static class DependencyInjectionExtensions
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        // Register AutoMapper with assembly scanning for MappingProfile
+        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        
+        return services;
+    }
+}
+```
+
 **`Program.cs`**
 
 ```csharp
@@ -191,6 +209,238 @@ app
 
 app.Run();
 ```
+
+---
+
+## AutoMapper MappingProfile Pattern
+
+The Application layer uses AutoMapper to handle Entity-to-DTO transformations automatically. This eliminates boilerplate mapping code and centralizes transformation logic.
+
+### MappingProfile Structure
+
+**Location**: `WexTransaction.Application/Mappings/MappingProfile.cs`
+
+**Key Principles**:
+- Inherits from `AutoMapper.Profile` class
+- Defines mappings between Domain entities and Application DTOs
+- Uses `CreateMap<Source, Destination>()` for configuration
+- Handles value object conversions via implicit operators or `.ForMember()` configurations
+- Registered automatically in DependencyInjectionExtensions via `typeof(MappingProfile).Assembly`
+
+### Example: Entity-DTO Mapping
+
+```csharp
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        // Map PurchaseTransaction entity to QueryTransactionResponse DTO
+        CreateMap<PurchaseTransaction, QueryTransactionResponse>()
+            .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => (string)src.Description)) // Value object conversion
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.TransactionDate))
+            .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => (decimal)src.Amount)) // Value object conversion
+            .ForMember(dest => dest.TaxRate, opt => opt.Ignore()) // Populated by application logic
+            .ForMember(dest => dest.ConvertedValue, opt => opt.Ignore()); // Populated by application logic
+    }
+}
+```
+
+### Value Object Conversions
+
+Domain layer uses value objects (Money, TransactionDescription) with implicit operators for conversion:
+- `TransactionDescription` has implicit `operator string` → maps directly via casting
+- `Money` has implicit `operator decimal` → maps directly via casting
+- These conversions maintain domain integrity while enabling clean DTOs
+
+---
+
+## CQRS Pattern (Phase 2A)
+
+The Application layer implements Command Query Responsibility Segregation (CQRS) using MediatR to separate read and write operations, improving scalability and testability.
+
+### Architecture Flow
+
+```
+API Controller (HTTP)
+    ↓
+MediatR.Send(Command/Query)
+    ↓
+Handler (IRequestHandler)
+    ↓
+Domain Layer (Business Logic)
+    ↓
+Infrastructure (Repository, External APIs)
+```
+
+### Command Pattern (Write Operations)
+
+**CreateTransactionCommand** - Handles purchase transaction creation
+
+```csharp
+public record CreateTransactionCommand(
+    string Description,
+    DateTime Date,
+    decimal Amount
+) : IRequest<Guid>;
+```
+
+**CreateTransactionCommandHandler** - Processes the command
+
+```csharp
+public class CreateTransactionCommandHandler : IRequestHandler<CreateTransactionCommand, Guid>
+{
+    private readonly ITransactionRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    
+    public async Task<Guid> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
+    {
+        var transaction = PurchaseTransaction.Create(request.Description, request.Date, request.Amount);
+        await _repository.AddAsync(transaction);
+        await _unitOfWork.Commit(cancellationToken);
+        
+        // TODO: Phase 2B - publish TransactionCreatedEvent via injected IEventPublisher (deferred)
+        
+        return transaction.Id;
+    }
+}
+```
+
+### Query Pattern (Read Operations)
+
+**GetTransactionQuery** - Retrieves and converts transaction details
+
+```csharp
+public record GetTransactionQuery(
+    Guid TransactionId,
+    string Country,
+    string Currency
+) : IRequest<QueryTransactionResponse?>;
+```
+
+**GetTransactionQueryHandler** - Processes the query
+
+```csharp
+public class GetTransactionQueryHandler : IRequestHandler<GetTransactionQuery, QueryTransactionResponse?>
+{
+    private readonly ITransactionRepository _repository;
+    private readonly IExchangeRateProvider _exchangeRateProvider;
+    private readonly IMapper _mapper;
+    
+    public async Task<QueryTransactionResponse?> Handle(GetTransactionQuery request, CancellationToken cancellationToken)
+    {
+        var transaction = await _repository.GetByIdAsync(request.TransactionId);
+        if (transaction == null)
+            return null;
+        
+        var exchangeRates = await _exchangeRateProvider.GetExchangeRatesAsync(request.Country, request.Currency);
+        var selectedRate = ExchangeRateSelector.SelectRate((decimal)transaction.Amount, transaction.TransactionDate, exchangeRates);
+        
+        var response = _mapper.Map<QueryTransactionResponse>(transaction);
+        response = response with
+        {
+            TaxRate = selectedRate.Rate,
+            ConvertedValue = (decimal)transaction.Amount * selectedRate.Rate
+        };
+        
+        // TODO: Phase 2B - publish TransactionConvertedEvent via injected IEventPublisher (deferred)
+        
+        return response;
+    }
+}
+```
+
+## MediatR Integration (Phase 2A)
+
+MediatR serves as the central mediator for all command and query processing, decoupling the API layer from application logic.
+
+### Service Registration
+
+**`Extensions/ApplicationExtensions.cs`**
+
+```csharp
+public static class ApplicationExtensions
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        // Register AutoMapper
+        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        
+        // Register MediatR with assembly scanning for handlers
+        services.AddMediatR(config =>
+            config.RegisterServicesFromAssembly(typeof(CreateTransactionCommand).Assembly));
+        
+        // Register use case facades for backward compatibility
+        services.AddScoped<ICreateTransactionUseCase, CreateTransactionUseCase>();
+        services.AddScoped<IQueryTransactionUseCase, GetTransactionUseCase>();
+        
+        return services;
+    }
+}
+```
+
+### Backward Compatibility (Optional Facades)
+
+Existing use case interfaces are retained as optional facades that delegate to MediatR, enabling gradual migration from the old pattern:
+
+```csharp
+public class CreateTransactionUseCase : ICreateTransactionUseCase
+{
+    private readonly IMediator _mediator;
+    
+    public async Task<Guid> ExecuteAsync(CreateTransactionRequest request, CancellationToken cancellationToken = default)
+    {
+        var command = new CreateTransactionCommand(request.Description, request.Date, request.Amount);
+        return await _mediator.Send(command, cancellationToken);
+    }
+}
+```
+
+### Directory Structure
+
+```
+Application/
+├── Commands/
+│   └── CreateTransactionCommand.cs
+├── Queries/
+│   └── GetTransactionQuery.cs
+├── Handlers/
+│   ├── CreateTransactionCommandHandler.cs
+│   └── GetTransactionQueryHandler.cs
+├── Services/
+│   ├── CreateTransactionUseCase.cs (facade)
+│   └── GetTransactionUseCase.cs (facade)
+├── Dtos/
+├── Mappings/
+├── Extensions/
+│   └── ApplicationExtensions.cs
+└── GlobalUsings.cs
+```
+
+## Development Roadmap (Phases)
+
+### Phase 2A (Current) ✓
+- Core CQRS architecture with MediatR
+- Commands and Queries abstractions
+- Command and Query handlers
+- Backward compatibility with use case facades
+- Documentation and examples
+
+### Phase 2B (Deferred)
+- Event abstractions (IDomainEvent, IEventPublisher)
+- Domain event implementations
+- Pipeline behaviors (validation, logging, error handling)
+- Transactional outbox pattern
+
+### Phase 2C (Future)
+- API controller refactoring to use MediatR directly
+- Remove dependency on use case facades
+
+### Phase 3+ (Future)
+- Event Sourcing persistence
+- Saga patterns for complex workflows
+- Separate read/write models if scaling requires
 
 ---
 

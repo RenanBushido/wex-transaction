@@ -41,7 +41,7 @@ date of the purchase.
 - [x] There is no information regarding the volume of requests, but the application will be prepared.
 - [x] Build the **Domain** layer.
 - [ ] Build the **Application** layer.
-- [ ] Build the **Infrastructure** layer.
+- [x] Build the **Infrastructure** layer.
 - [ ] Build the **Presentation** layer.
 
 
@@ -50,3 +50,82 @@ date of the purchase.
 -   I used OpenSpec to help me create this application. I employed the Spec-Driven Development methodology to build the application, refining each step of the project structure whenever possible.
 -   After that, I chose Clean Architecture and the SOLID principles as the design architecture.
 -   Also i created a **SKILL** to review each step that I advanced
+
+## Domain Layer
+
+-   I used some conecepts of DDD, creating IEntity and IAuditablesEntity for shared the same identity.
+-   Simplify extensibility and enable polymorphism and follow the principles Open/Close of SOLID. 
+-   ExchangeRateSelector it's Domain Service (DDD) application orquestration.
+
+## Infrastructure Layer
+
+-   This layer has 2 projects (Database and ServiceRatesExchange)
+-   **Database**: 
+    -   Implemented the IBaseRepository, IUnitOfWork and ITransactionRepository Interfaces. I Used repository pattherns with IUnitOfWork, preparing the application to avoid concurrency of events like: Queries and Persistences.
+    -   I used EF Core as the persistence tool.
+    -   I prepared the code for execute Migrations.
+
+-   **Services RatesExchange**:
+    -   I used **Refit** e **HttpClient Factory** as tool to call an external API.
+
+## Application Layer
+
+-   
+    
+
+Domain Layer - Estrutura & Organização:
+- ✅ GlobalUsings.cs criado com imports de projeto (segue CLAUDE.md)
+- ✅ Estrutura de pastas bem organizada:
+  - Common/ — Interfaces base (IEntity, IEntityAuditable) ✓
+  - Entities/ — Agregados raiz (PurchaseTransaction) ✓
+  - ValueObjects/ — Valores imutáveis (Money, TransactionDescription, ExchangeRate, ConvertedTransactionResult) ✓
+  - Exceptions/ — Exceções de domínio customizadas ✓
+  - Services/ — Serviços de domínio puros (ExchangeRateSelector) ✓
+  - Interfaces/ — Contratos adicionais ✓
+
+Database Layer - Estrutura & Implementação:
+- ✅ GlobalUsings.cs com imports apropriados (Microsoft.EntityFrameworkCore, ValueConversion, etc) ✓
+- ✅ Estrutura modular:
+  - Extensions/ — PersistenceExtensions (segue padrão CLAUDE.md) ✓
+  - Repositories/ — ITransactionRepository, TransactionRepository com padrão genérico ✓
+  - Config/ — Configuração de entidades EF Core ✓
+  - Data/ — DbContext (WexTransactionDbContext) ✓
+  - Migrations/ — Versionamento EF Core ✓
+
+Aderência a CLAUDE.md:
+- ✅ Extension Pattern: PersistenceExtensions em Extensions/ folder ✓
+- ✅ Fluent Interface: AddPersistence retorna IServiceCollection ✓
+- ✅ Async/Await: Todos os métodos são async (Task<T>) ✓
+- ✅ Single Responsibility: Cada classe tem responsabilidade única ✓
+- ✅ SOLID Principles:
+  - S: Repository tem única responsabilidade (CRUD) ✓
+  - O: Aberto para extensão (Generic Repository pattern) ✓
+  - L: Implementações substituem interfaces corretamente ✓
+  - I: Interfaces segregadas (ITransactionRepository, IEntity, IEntityAuditable) ✓
+  - D: Depende de abstrações (ITransactionRepository, IConfiguration) ✓
+
+Clean Architecture:
+- ✅ Domain Layer: Não depende de nada (Domain é independente) ✓
+- ✅ Database Layer: Depende apenas de Domain ✓
+- ✅ Sem dependências circulares ✓
+- ✅ ValueConverters para mapear value objects ao banco ✓
+
+Base Repository Pattern (Novo):
+- ✅ Classe genérica BaseRepository<T> para operações CRUD comuns ✓
+- ✅ TransactionRepository herda de BaseRepository, adiciona lógica específica ✓
+- ✅ Reduz duplicação de código ✓
+
+UnitOfWork Pattern (Novo):
+- ✅ IUnitOfWork interface para coordenar transações ✓
+- ✅ UnitOfWork implementação com Commit() assíncrono ✓
+- ✅ Centraliza SaveChanges() logic ✓
+
+🔍 Boas Práticas Aplicadas
+
+✅ Repository Pattern: Abstração clara de data access
+✅ Unit of Work Pattern: Coordenação de transações
+✅ Value Converters: Mapeamento elegante de value objects
+✅ Generic Base: BaseRepository reduz código duplicado
+✅ Null Checks: Validação apropriada em constructores
+✅ Async All The Way: Sem sync-over-async antipattern
+✅ Configuration-Driven: Connection strings em appsettings.json
