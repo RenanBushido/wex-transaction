@@ -1,4 +1,4 @@
-namespace WexTransaction.Tests.Infrastructure.Repositories;
+namespace WexTransaction.Tests.Infrastructure.Database.Repositories;
 
 public class TransactionRepositoryTests
 {
