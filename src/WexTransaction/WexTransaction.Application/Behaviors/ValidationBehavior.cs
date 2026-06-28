@@ -5,10 +5,8 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var requestType = typeof(TRequest).Name;
-
-        Debug.WriteLine($"Validating request: {requestType}");
-        
+        Debug.WriteLine($"Validating request: {typeof(TRequest).Name}");
+        // TODO: Phase 2B - Add FluentValidation integration
         return await next();
     }
 }
