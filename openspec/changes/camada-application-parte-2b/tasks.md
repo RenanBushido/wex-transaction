@@ -2,27 +2,27 @@
 
 **Note**: Following Clean Architecture principles (per commit 0238c5a), ports (interfaces) reside in Domain/Interfaces/, implementations in Application layer.
 
-- [ ] 1.1 Create IDomainEvent interface in Domain/Interfaces/
+- [x] 1.1 Create IDomainEvent interface in Domain/Interfaces/
        Location: `/src/WexTransaction/WexTransaction.Domain/Interfaces/IDomainEvent.cs`
        Properties: AggregateId (Guid), OccurredAt (DateTimeOffset in UTC), EventType (string)
        Requirement: Immutable via record type
 
-- [ ] 1.2 Create IEventPublisher interface in Domain/Interfaces/
+- [x] 1.2 Create IEventPublisher interface in Domain/Interfaces/
        Location: `/src/WexTransaction/WexTransaction.Domain/Interfaces/IEventPublisher.cs`
        Methods: 
          - PublishAsync(IDomainEvent, CancellationToken)
          - PublishMultipleAsync(IEnumerable<IDomainEvent>, CancellationToken)
        Documentation: Port for event publishing infrastructure (persistence deferred to Phase 3)
 
-- [ ] 1.3 Update Domain/GlobalUsings.cs
+- [x] 1.3 Update Domain/GlobalUsings.cs
        Add: `global using WexTransaction.Domain.Interfaces;` (if not already present)
 
 ## 2. Create No-Op Event Publisher Implementation (Application Layer)
 
-- [ ] 2.1 Create Events directory in Application project
+- [x] 2.1 Create Events directory in Application project
        Location: `/src/WexTransaction/WexTransaction.Application/Events/`
 
-- [ ] 2.2 Create NoOpEventPublisher implementing IEventPublisher
+- [x] 2.2 Create NoOpEventPublisher implementing IEventPublisher
        Location: `/src/WexTransaction/WexTransaction.Application/Events/NoOpEventPublisher.cs`
        Namespace: `WexTransaction.Application.Events`
        Implementation:
@@ -30,15 +30,15 @@
          - PublishMultipleAsync: complete successfully without persisting
        Add TODO comment: "Phase 3: Replace with EventStorePublisher for persistence"
 
-- [ ] 2.3 Update Application/GlobalUsings.cs
+- [x] 2.3 Update Application/GlobalUsings.cs
        Add: `global using WexTransaction.Application.Events;`
 
 ## 3. Create Concrete Domain Events (Application Layer)
 
-- [ ] 3.1 Create DomainEvents subdirectory in Application/Events
+- [x] 3.1 Create DomainEvents subdirectory in Application/Events
        Location: `/src/WexTransaction/WexTransaction.Application/Events/DomainEvents/`
 
-- [ ] 3.2 Create TransactionCreatedEvent record implementing IDomainEvent
+- [x] 3.2 Create TransactionCreatedEvent record implementing IDomainEvent
        Location: `/src/WexTransaction/WexTransaction.Application/Events/DomainEvents/TransactionCreatedEvent.cs`
        Namespace: `WexTransaction.Application.Events.DomainEvents`
        Properties: 
@@ -50,16 +50,16 @@
          - Date (DateTime) - domain context
        Requirement: Record type for immutability
 
-- [ ] 3.3 Verify immutability: all properties are read-only/init-only
+- [x] 3.3 Verify immutability: all properties are read-only/init-only
 
 ## 4. Update Command Handlers with Event Publishing
 
-- [ ] 4.1 Update SaveTransactionCommandHandler to inject IEventPublisher
+- [x] 4.1 Update SaveTransactionCommandHandler to inject IEventPublisher
        Location: `/src/WexTransaction/WexTransaction.Application/PurchaseTransaction/SaveTransaction/SaveTransactionCommandHandler.cs`
        Add constructor parameter: `IEventPublisher eventPublisher`
        Add field: `private readonly IEventPublisher _eventPublisher = eventPublisher;`
 
-- [ ] 4.2 Add event publishing call after successful transaction save:
+- [x] 4.2 Add event publishing call after successful transaction save:
        Position: After `await _unitOfWork.Commit(cancellationToken);`
        Code:
        ```csharp
@@ -74,17 +74,17 @@
        ```
        Note: Cast value objects to scalar types for event data
 
-- [ ] 4.3 GetTransactionIdQueryHandler: NO event publishing in Phase 2B
+- [x] 4.3 GetTransactionIdQueryHandler: NO event publishing in Phase 2B
        Reason: Queries represent read operations; domain events model state changes (write operations)
        Future: Phase 2C+ may add query events if audit trail required
        Action: Inject IEventPublisher but do NOT call PublishAsync (leave as TODO comment)
 
 ## 5. Create MediatR Pipeline Behaviors (Application Layer)
 
-- [ ] 5.1 Create Behaviors directory in Application project
+- [x] 5.1 Create Behaviors directory in Application project
        Location: `/src/WexTransaction/WexTransaction.Application/Behaviors/`
 
-- [ ] 5.2 Create LoggingBehavior implementing IPipelineBehavior<TRequest, TResponse>
+- [x] 5.2 Create LoggingBehavior implementing IPipelineBehavior<TRequest, TResponse>
        Location: `/src/WexTransaction/WexTransaction.Application/Behaviors/LoggingBehavior.cs`
        Namespace: `WexTransaction.Application.Behaviors`
        Generic: `LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>`
@@ -97,7 +97,7 @@
          - Catch exceptions: log details, re-throw
        Performance: Target < 2ms overhead
 
-- [ ] 5.3 Create ValidationBehavior as extensible placeholder
+- [x] 5.3 Create ValidationBehavior as extensible placeholder
        Location: `/src/WexTransaction/WexTransaction.Application/Behaviors/ValidationBehavior.cs`
        Namespace: `WexTransaction.Application.Behaviors`
        Generic: `ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>`
@@ -108,7 +108,7 @@
          - Add TODO comment: "Phase 2C: Integrate FluentValidation validators"
        Future: FluentValidation integration deferred to Phase 2C
 
-- [ ] 5.4 Create ErrorHandlingBehavior as extensible placeholder
+- [x] 5.4 Create ErrorHandlingBehavior as extensible placeholder
        Location: `/src/WexTransaction/WexTransaction.Application/Behaviors/ErrorHandlingBehavior.cs`
        Namespace: `WexTransaction.Application.Behaviors`
        Generic: `ErrorHandlingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>`
@@ -122,13 +122,13 @@
 
 ## 6. Register Event Publisher and Behaviors
 
-- [ ] 6.1 Update Application/GlobalUsings.cs
+- [x] 6.1 Update Application/GlobalUsings.cs
        Add:
          - `global using WexTransaction.Application.Events;`
          - `global using WexTransaction.Application.Behaviors;`
        Verify: `global using WexTransaction.Domain.Interfaces;` already present
 
-- [ ] 6.2 Update ApplicationExtensions.AddApplicationServices()
+- [x] 6.2 Update ApplicationExtensions.AddApplicationServices()
        Location: `/src/WexTransaction/WexTransaction.Application/Extensions/ApplicationExtensions.cs`
        
        Register IEventPublisher (port from Domain layer):
@@ -149,12 +149,12 @@
        
        Behavior Execution Order: Logging → Validation → Handler → ErrorHandling
 
-- [ ] 6.3 Verify fluent interface
+- [x] 6.3 Verify fluent interface
        AddApplicationServices() must return IServiceCollection for method chaining
 
 ## 7. Update CLAUDE.md Documentation
 
-- [ ] 7.1 Add "Event Sourcing Readiness (Phase 2B)" section to CLAUDE.md
+- [x] 7.1 Add "Event Sourcing Readiness (Phase 2B)" section to CLAUDE.md
        Location: After CQRS Pattern section
        Content:
          - Explain IDomainEvent port (in Domain/Interfaces/)
@@ -164,7 +164,7 @@
          - Document NoOpEventPublisher implementation (discards events)
          - Note: Event persistence deferred to Phase 3
 
-- [ ] 7.2 Add "MediatR Pipeline Behaviors (Phase 2B)" section
+- [x] 7.2 Add "MediatR Pipeline Behaviors (Phase 2B)" section
        Content:
          - Explain IPipelineBehavior<TRequest, TResponse> pattern
          - Show behavior pipeline ordering: LoggingBehavior → ValidationBehavior → Handler → ErrorHandlingBehavior
@@ -173,7 +173,7 @@
          - Document error handling behavior as extensible placeholder (exception mapping Phase 2C+)
          - Performance note: < 5ms total overhead target
 
-- [ ] 7.3 Add "Event Publishing Pattern (Phase 2B)" section
+- [x] 7.3 Add "Event Publishing Pattern (Phase 2B)" section
        Content:
          - Show SaveTransactionCommandHandler example with IEventPublisher injection
          - Show event creation: new TransactionCreatedEvent(...)
@@ -181,7 +181,7 @@
          - Show command → handler → event publishing flow
          - Clarify: Queries do NOT publish events (write operations only)
 
-- [ ] 7.4 Update "Development Roadmap (Phases)" section
+- [x] 7.4 Update "Development Roadmap (Phases)" section
        Modify Phase 2B entry:
          ```markdown
          ### Phase 2B (Current)
@@ -195,20 +195,20 @@
 
 ## 8. Verify Handler Event Publishing
 
-- [ ] 8.1 Verify SaveTransactionCommandHandler compiles with IEventPublisher injection
+- [x] 8.1 Verify SaveTransactionCommandHandler compiles with IEventPublisher injection
        Check: Constructor has `IEventPublisher eventPublisher` parameter
        Check: Field `_eventPublisher` is assigned
 
-- [ ] 8.2 Verify event publishing call in SaveTransactionCommandHandler
+- [x] 8.2 Verify event publishing call in SaveTransactionCommandHandler
        Location: After `await _unitOfWork.Commit(cancellationToken);`
        Check: Uses `TransactionCreatedEvent` with correct properties
        Check: Passes AggregateId (transaction.Id), OccurredAt (DateTimeOffset.UtcNow)
        Check: Populates Description, Amount, Date from transaction
 
-- [ ] 8.3 Verify event publishing is awaited
+- [x] 8.3 Verify event publishing is awaited
        Check: `await _eventPublisher.PublishAsync(...)` (not fire-and-forget)
 
-- [ ] 8.4 Verify GetTransactionIdQueryHandler does NOT publish events
+- [x] 8.4 Verify GetTransactionIdQueryHandler does NOT publish events
        Check: Has IEventPublisher injected (for future use)
        Check: NO PublishAsync() call in Handle method
        Check: TODO comment present for Phase 2C+ query events
