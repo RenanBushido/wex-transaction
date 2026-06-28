@@ -1,8 +1,4 @@
 namespace WexTransaction.Tests.Domain.Interfaces;
-
-using Xunit;
-using WexTransaction.Domain.Interfaces;
-
 public class IUnitOfWorkTests
 {
     [Fact]

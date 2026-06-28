@@ -1,8 +1,5 @@
 namespace WexTransaction.Tests.Application.UseCases.SavePurchaseTransaction;
 
-using Xunit;
-using WexTransaction.Application.UseCases.SavePurchaseTransaction;
-
 /// <summary>
 /// Test: SaveTransactionCommand - Validates command structure and properties
 /// </summary>

@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Application.Extensions;
 
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using WexTransaction.Application.Extensions;
-using WexTransaction.Application.Behaviors;
-using MediatR;
-
 public class ApplicationExtensionsTests
 {
     [Fact]

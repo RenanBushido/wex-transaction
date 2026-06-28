@@ -1,12 +1,4 @@
 namespace WexTransaction.Tests.Infrastructure.Services.RatesExchange.Extensions;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using WexTransaction.Infra.Services.RatesExchange.Clients;
-using WexTransaction.Infra.Services.RatesExchange.Extensions;
-using WexTransaction.Domain.Interfaces;
-
 public class ExternalApiExtensionsTests
 {
     private static IConfiguration CreateConfiguration(string? treasuryUrl = null, int? timeout = null)

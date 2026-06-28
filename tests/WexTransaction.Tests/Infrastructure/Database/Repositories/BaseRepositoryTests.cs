@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Infrastructure.Database.Repositories;
 
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-using WexTransaction.Infra.Database.Data;
-using WexTransaction.Infra.Database.Repositories;
-using WexTransaction.Domain.Entities;
-
 public class BaseRepositoryTests
 {
     private static WexTransactionDbContext CreateInMemoryContext()

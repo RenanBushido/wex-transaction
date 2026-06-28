@@ -21,7 +21,8 @@ public static class ExternalApiExtensions
             {
                 client.BaseAddress = new Uri(treasuryApiUrl);
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
-            });
+            })
+            .AddTreasuryApiPolicies();
 
         services.AddScoped(sp =>
         {

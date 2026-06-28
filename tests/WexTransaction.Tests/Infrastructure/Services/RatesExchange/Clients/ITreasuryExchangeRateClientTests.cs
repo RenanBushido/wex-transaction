@@ -1,10 +1,4 @@
 namespace WexTransaction.Tests.Infrastructure.Services.RatesExchange.Clients;
-
-using System.Reflection;
-using Refit;
-using Xunit;
-using WexTransaction.Infra.Services.RatesExchange.Clients;
-
 public class ITreasuryExchangeRateClientTests
 {
     [Fact]

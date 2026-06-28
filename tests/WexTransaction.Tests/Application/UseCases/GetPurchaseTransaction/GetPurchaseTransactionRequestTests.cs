@@ -1,8 +1,5 @@
 namespace WexTransaction.Tests.Application.UseCases.GetPurchaseTransaction;
 
-using Xunit;
-using WexTransaction.Application.UseCases.GetPurchaseTransaction;
-
 /// <summary>
 /// Test: GetPurchaseTransactionRequest - Validates query structure and properties
 /// </summary>

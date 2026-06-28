@@ -1,11 +1,5 @@
 namespace WexTransaction.Tests.Application.UseCases.SavePurchaseTransaction;
 
-using Moq;
-using Xunit;
-using WexTransaction.Application.UseCases.SavePurchaseTransaction;
-using WexTransaction.Domain.Entities;
-using WexTransaction.Domain.Interfaces;
-
 /// <summary>
 /// Test: SaveTransactionCommandHandler - Creates and saves purchase transactions
 /// </summary>

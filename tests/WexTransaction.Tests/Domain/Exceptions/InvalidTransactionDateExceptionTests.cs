@@ -1,8 +1,5 @@
 namespace WexTransaction.Tests.Domain.Exceptions;
 
-using Xunit;
-using WexTransaction.Domain.Exceptions;
-
 public class InvalidTransactionDateExceptionTests
 {
     [Fact]

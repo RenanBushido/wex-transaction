@@ -1,11 +1,4 @@
 namespace WexTransaction.Tests.Application.Behaviors;
-
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using WexTransaction.Application.Behaviors;
-using MediatR;
-
 public class UnhandledExceptionBehaviourTests
 {
     private readonly Mock<ILogger<TestRequest>> _mockLogger;

@@ -1,9 +1,4 @@
 namespace WexTransaction.Tests.Domain.Interfaces;
-
-using Xunit;
-using WexTransaction.Domain.Interfaces;
-using WexTransaction.Domain.Common;
-
 public class IBaseRepositoryTests
 {
     [Fact]

@@ -1,9 +1,5 @@
 namespace WexTransaction.Tests.Domain.Interfaces;
 
-using System.Collections.Generic;
-using Xunit;
-using WexTransaction.Domain.Interfaces;
-
 public class IExchangeRateProviderTests
 {
     [Fact]

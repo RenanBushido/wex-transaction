@@ -1,12 +1,5 @@
 namespace WexTransaction.Tests.Infrastructure.Database.Extensions;
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using WexTransaction.Infra.Database.Data;
-using WexTransaction.Infra.Database.Extensions;
-using WexTransaction.Domain.Interfaces;
-
 public class PersistenceExtensionsTests
 {
     private static IConfiguration CreateConfiguration(string? connectionString = null)

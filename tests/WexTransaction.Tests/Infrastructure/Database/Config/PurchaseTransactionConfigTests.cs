@@ -1,12 +1,5 @@
 namespace WexTransaction.Tests.Infrastructure.Database.Config;
 
-using Microsoft.EntityFrameworkCore;
-using Xunit;
-using WexTransaction.Infra.Database.Config;
-using WexTransaction.Infra.Database.Data;
-using WexTransaction.Domain.Entities;
-using WexTransaction.Domain.ValueObjects;
-
 public class PurchaseTransactionConfigTests
 {
     private static WexTransactionDbContext CreateConfiguredContext()
