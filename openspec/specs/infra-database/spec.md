@@ -18,6 +18,10 @@ The system SHALL provide a DbContext that manages purchase transaction entities 
 - **WHEN** the application starts
 - **THEN** pending EF Core migrations are applied automatically if database is not up to date
 
+#### Scenario: Database directory prerequisites are verified
+- **WHEN** the application starts and database migrations are about to execute
+- **THEN** the database directory exists with proper permissions (755) in the project root
+
 #### Scenario: Database is created if it does not exist
 - **WHEN** the application starts and the database does not exist
 - **THEN** EF Core creates the database based on the configured connection string
