@@ -44,4 +44,46 @@ public class SaveTransactionCommandHandlerTests
             u => u.Commit(It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WithEmptyDescription_ThrowsInvalidDescriptionException()
+    {
+        // Arrange
+        var command = new SaveTransactionCommand(string.Empty, ValidDate, ValidAmount);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidDescriptionException>(
+            () => _handler.Handle(command, CancellationToken.None));
+
+        _mockRepository.Verify(r => r.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.Commit(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithZeroAmount_ThrowsInvalidAmountException()
+    {
+        // Arrange
+        var command = new SaveTransactionCommand(ValidDescription, ValidDate, 0m);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidAmountException>(
+            () => _handler.Handle(command, CancellationToken.None));
+
+        _mockRepository.Verify(r => r.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.Commit(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithInvalidDate_ThrowsInvalidTransactionDateException()
+    {
+        // Arrange
+        var command = new SaveTransactionCommand(ValidDescription, default(DateTime), ValidAmount);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidTransactionDateException>(
+            () => _handler.Handle(command, CancellationToken.None));
+
+        _mockRepository.Verify(r => r.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()), Times.Never);
+        _mockUnitOfWork.Verify(u => u.Commit(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
