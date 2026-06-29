@@ -97,4 +97,47 @@ public class SaveTransactionValidatorTests
         Assert.False(result.IsValid);
         Assert.True(result.Errors.Count >= 2);
     }
+
+    [Fact]
+    public void Validate_WithExactly50CharDescription_ReturnsSuccess()
+    {
+        // Arrange
+        var description = new string('a', 50);
+        var command = new SaveTransactionCommand(description, ValidDate, ValidAmount);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithExactly1CharDescription_ReturnsSuccess()
+    {
+        // Arrange
+        var command = new SaveTransactionCommand("a", ValidDate, ValidAmount);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData(0.01)]
+    [InlineData(1000.00)]
+    [InlineData(999999.99)]
+    public void Validate_WithVariousValidAmounts_ReturnsSuccess(decimal amount)
+    {
+        // Arrange
+        var command = new SaveTransactionCommand(ValidDescription, ValidDate, amount);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
 }
