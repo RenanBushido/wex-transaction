@@ -52,6 +52,9 @@ try
 
     var app = builder.Build();
 
+    // Apply pending EF Core migrations before accepting requests.
+    // This ensures the database schema is initialized and up-to-date.
+    // If migrations fail, the application will not start.
     app.MigrateDatabase();
 
     if (app.Environment.IsDevelopment())

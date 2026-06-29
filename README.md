@@ -404,13 +404,60 @@ docker-compose up --build
 
 ### Database Migrations
 
-```bash
-# Create a new migration
-dotnet ef migrations add MigrationName -p src/WexTransaction/WexTransaction.Infra.Database -s src/WexTransaction/WexTransaction.Api
+#### Automatic Migrations on Startup
 
-# Apply migrations
-dotnet ef database update -p src/WexTransaction/WexTransaction.Infra.Database -s src/WexTransaction/WexTransaction.Api
+Database migrations are **automatically applied when the application starts**. The API will:
+
+1. Ensure the PostgreSQL database exists (creates if missing)
+2. Apply any pending EF Core migrations to initialize the schema
+3. Log migration status to the console/Serilog
+4. Fail fast with informative errors if migrations cannot be applied
+
+**No manual migration steps are required.** The application will not accept requests until all migrations are successfully applied.
+
+#### Creating New Migrations
+
+To create a new migration after modifying entities in the Domain layer:
+
+```bash
+dotnet ef migrations add MigrationName \
+  -p src/WexTransaction/WexTransaction.Infra.Database \
+  -s src/WexTransaction/WexTransaction.Api
 ```
+
+The migration will be automatically applied the next time the application starts.
+
+#### Troubleshooting Migration Failures
+
+If the application fails to start with a migration error:
+
+1. **Check database connectivity**: Verify PostgreSQL is running and the connection string is correct
+   ```bash
+   psql -h localhost -U wexuser -d wextransaction
+   ```
+
+2. **Review migration logs**: Look for detailed error messages in the application startup logs
+   - Connection errors will indicate PostgreSQL is unreachable
+   - Schema conflicts will identify the problematic migration
+
+3. **Verify connection string**: Ensure `appsettings.json` or environment variables contain the correct connection string
+   ```json
+   "ConnectionStrings": {
+     "DefaultConnection": "Host=localhost;Port=5432;Database=wextransaction;Username=wexuser;Password=wexpassword;"
+   }
+   ```
+
+4. **Reset database (development only)**: For local testing, drop and recreate the database
+   ```bash
+   # Stop running containers
+   docker compose down
+   
+   # Remove the database volume
+   docker volume rm wex-transaction_postgres_data
+   
+   # Restart containers (migrations will re-run)
+   docker compose up -d
+   ```
 
 ## Architecture Decisions
 
