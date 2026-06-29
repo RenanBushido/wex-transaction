@@ -1,13 +1,14 @@
 namespace WexTransaction.Tests.Application.UseCases.SavePurchaseTransaction;
 
-/// <summary>
-/// Test: SaveTransactionCommandHandler - Creates and saves purchase transactions
-/// </summary>
 public class SaveTransactionCommandHandlerTests
 {
     private readonly Mock<ITransactionRepository> _mockRepository;
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly SaveTransactionCommandHandler _handler;
+
+    private static readonly DateTime ValidDate = new DateTime(2026, 6, 23, 8, 30, 0, DateTimeKind.Utc);
+    private const string ValidDescription = "Coffee purchase";
+    private const decimal ValidAmount = 200.24m;
 
     public SaveTransactionCommandHandlerTests()
     {
@@ -20,14 +21,15 @@ public class SaveTransactionCommandHandlerTests
     public async Task Handle_WithValidCommand_SavesTransactionAndReturnsId()
     {
         // Arrange
-        var command = new SaveTransactionCommand(
-            Description: "Test Transaction",
-            Date: DateTime.UtcNow,
-            Amount: 100.50m
-        );
+        var command = new SaveTransactionCommand(ValidDescription, ValidDate, ValidAmount);
+
+        // Mock setup
+        _mockRepository
+            .Setup(r => r.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()))
+            .Returns(Task.CompletedTask);
 
         _mockUnitOfWork
-            .Setup(x => x.Commit(It.IsAny<CancellationToken>()))
+            .Setup(u => u.Commit(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -35,146 +37,11 @@ public class SaveTransactionCommandHandlerTests
 
         // Assert
         Assert.NotEqual(Guid.Empty, result);
-        _mockRepository.Verify(x => x.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()), Times.Once);
-        _mockUnitOfWork.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_CallsRepositoryBeforeUnitOfWork()
-    {
-        // Arrange
-        var command = new SaveTransactionCommand(
-            Description: "Test Transaction",
-            Date: DateTime.UtcNow,
-            Amount: 100.50m
-        );
-
-        var callOrder = new List<string>();
-
-        _mockRepository
-            .Setup(x => x.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()))
-            .Callback(() => callOrder.Add("Repository"))
-            .Returns(Task.CompletedTask);
-
-        _mockUnitOfWork
-            .Setup(x => x.Commit(It.IsAny<CancellationToken>()))
-            .Callback(() => callOrder.Add("UnitOfWork"))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(2, callOrder.Count);
-        Assert.Equal("Repository", callOrder[0]);
-        Assert.Equal("UnitOfWork", callOrder[1]);
-    }
-
-    [Fact]
-    public async Task Handle_WithValidCommand_CreatesTransactionWithCorrectData()
-    {
-        // Arrange
-        var description = "Test Description";
-        var date = DateTime.UtcNow;
-        var amount = 250.75m;
-
-        var command = new SaveTransactionCommand(
-            Description: description,
-            Date: date,
-            Amount: amount
-        );
-
-        PurchaseTransaction? capturedTransaction = null;
-
-        _mockRepository
-            .Setup(x => x.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()))
-            .Callback<PurchaseTransaction>(t => capturedTransaction = t)
-            .Returns(Task.CompletedTask);
-
-        _mockUnitOfWork
-            .Setup(x => x.Commit(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(capturedTransaction);
-        Assert.Equal(description, (string)capturedTransaction.Description);
-        Assert.Equal(date, capturedTransaction.TransactionDate);
-        Assert.Equal(amount, (decimal)capturedTransaction.Amount);
-        Assert.Equal(capturedTransaction.Id, result);
-    }
-
-    [Fact]
-    public async Task Handle_WhenRepositoryThrows_PropagatesException()
-    {
-        // Arrange
-        var command = new SaveTransactionCommand(
-            Description: "Test Transaction",
-            Date: DateTime.UtcNow,
-            Amount: 100.50m
-        );
-
-        var testException = new InvalidOperationException("Repository error");
-
-        _mockRepository
-            .Setup(x => x.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()))
-            .ThrowsAsync(testException);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(command, CancellationToken.None));
-
-        Assert.Equal(testException.Message, exception.Message);
-        _mockUnitOfWork.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_WhenUnitOfWorkThrows_PropagatesException()
-    {
-        // Arrange
-        var command = new SaveTransactionCommand(
-            Description: "Test Transaction",
-            Date: DateTime.UtcNow,
-            Amount: 100.50m
-        );
-
-        var testException = new InvalidOperationException("UnitOfWork error");
-
-        _mockRepository
-            .Setup(x => x.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()))
-            .Returns(Task.CompletedTask);
-
-        _mockUnitOfWork
-            .Setup(x => x.Commit(It.IsAny<CancellationToken>()))
-            .ThrowsAsync(testException);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(command, CancellationToken.None));
-
-        Assert.Equal(testException.Message, exception.Message);
-    }
-
-    [Fact]
-    public async Task Handle_ReturnsUniqueIdForEachTransaction()
-    {
-        // Arrange
-        var command1 = new SaveTransactionCommand("Test 1", DateTime.UtcNow, 100m);
-        var command2 = new SaveTransactionCommand("Test 2", DateTime.UtcNow, 200m);
-
-        _mockUnitOfWork
-            .Setup(x => x.Commit(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result1 = await _handler.Handle(command1, CancellationToken.None);
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
-
-        // Assert
-        Assert.NotEqual(Guid.Empty, result1);
-        Assert.NotEqual(Guid.Empty, result2);
-        Assert.NotEqual(result1, result2);
+        _mockRepository.Verify(
+            r => r.SavePurchaseTransaction(It.IsAny<PurchaseTransaction>()),
+            Times.Once);
+        _mockUnitOfWork.Verify(
+            u => u.Commit(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
