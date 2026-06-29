@@ -30,9 +30,9 @@ public class IExchangeRateProviderTests
 
         // Assert
         Assert.NotNull(parameters);
-        Assert.True(parameters.Length >= 1, "Method should have at least one parameter");
-        Assert.Equal("country", parameters[0].Name);
-        Assert.Equal(typeof(string), parameters[0].ParameterType);
+        Assert.True(parameters.Length >= 2, "Method should have at least two parameters");
+        Assert.Equal("country", parameters[1].Name);
+        Assert.Equal(typeof(string), parameters[1].ParameterType);
     }
 
     [Fact]
@@ -47,9 +47,9 @@ public class IExchangeRateProviderTests
 
         // Assert
         Assert.NotNull(parameters);
-        Assert.True(parameters.Length >= 2, "Method should have at least two parameters");
-        Assert.Equal("currency", parameters[1].Name);
-        Assert.Equal(typeof(string), parameters[1].ParameterType);
+        Assert.True(parameters.Length >= 3, "Method should have at least three parameters");
+        Assert.Equal("currency", parameters[2].Name);
+        Assert.Equal(typeof(string), parameters[2].ParameterType);
     }
 
     [Fact]

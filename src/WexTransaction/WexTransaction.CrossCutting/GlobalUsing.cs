@@ -11,3 +11,5 @@ global using WexTransaction.Infra.Services.RatesExchange.Extensions;
 global using WexTransaction.Infra.Services.RatesExchange.Providers;
 global using System.Data;
 global using Npgsql;
+global using Dapper;
+global using WexTransaction.Infra.Database.TypeHandlers;

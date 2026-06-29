@@ -32,7 +32,7 @@ public class TreasuryExchangeRateProviderTests
 
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
-        var result = await provider.GetExchangeRatesAsync("Brazil", "Real");
+        var result = await provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real");
 
         Assert.NotEmpty(result);
         Assert.Single(result);
@@ -72,7 +72,7 @@ public class TreasuryExchangeRateProviderTests
 
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
-        var result = await provider.GetExchangeRatesAsync("Brazil", "Real");
+        var result = await provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real");
 
         Assert.Equal(2, result.Count());
     }
@@ -90,7 +90,7 @@ public class TreasuryExchangeRateProviderTests
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
         await Assert.ThrowsAsync<CurrencyConversionUnavailableException>(
-            () => provider.GetExchangeRatesAsync("Brazil", "Real"));
+            () => provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real"));
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class TreasuryExchangeRateProviderTests
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
         await Assert.ThrowsAsync<CurrencyConversionUnavailableException>(
-            () => provider.GetExchangeRatesAsync("Brazil", "Real"));
+            () => provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real"));
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class TreasuryExchangeRateProviderTests
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
         await Assert.ThrowsAsync<CurrencyConversionUnavailableException>(
-            () => provider.GetExchangeRatesAsync("Brazil", "Real"));
+            () => provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real"));
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class TreasuryExchangeRateProviderTests
 
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
-        await provider.GetExchangeRatesAsync("Brazil", "Real");
+        await provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real");
 
         mockClient.Verify(
             c => c.GetExchangeRatesAsync(
@@ -179,8 +179,8 @@ public class TreasuryExchangeRateProviderTests
 
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
-        await provider.GetExchangeRatesAsync("Brazil", "Real");
-        await provider.GetExchangeRatesAsync("Brazil", "Real");
+        await provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real");
+        await provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real");
 
         mockClient.Verify(
             c => c.GetExchangeRatesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()),
@@ -212,6 +212,6 @@ public class TreasuryExchangeRateProviderTests
         var provider = new TreasuryExchangeRateProvider(mockClient.Object);
 
         await Assert.ThrowsAsync<CurrencyConversionUnavailableException>(
-            () => provider.GetExchangeRatesAsync("Brazil", "Real"));
+            () => provider.GetExchangeRatesAsync("2026-06-23", "Brazil", "Real"));
     }
 }

@@ -9,6 +9,9 @@ public static class PersistenceExtensions
         var connectionString = configuration.GetConnectionString("WexTransactionConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+        SqlMapper.AddTypeHandler(new MoneyTypeHandler());
+        SqlMapper.AddTypeHandler(new TransactionDescriptionTypeHandler());
+
         services.AddDbContext<WexTransactionDbContext>(options =>
             options.UseNpgsql(connectionString));
 
