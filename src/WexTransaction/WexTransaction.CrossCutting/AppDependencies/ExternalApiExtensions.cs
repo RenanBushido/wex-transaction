@@ -1,4 +1,4 @@
-namespace WexTransaction.Infra.Services.RatesExchange.Extensions;
+namespace WexTransaction.CrossCutting.AppDependencies;
 
 public static class ExternalApiExtensions
 {

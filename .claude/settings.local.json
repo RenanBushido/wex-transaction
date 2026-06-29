@@ -21,7 +21,8 @@
       "Bash(dotnet nuget *)",
       "Bash(dotnet restore *)",
       "Bash(git rm *)",
-      "Bash(tee /tmp/coverage-output.txt)"
+      "Bash(tee /tmp/coverage-output.txt)",
+      "Bash(openspec archive *)"
     ]
   }
 }

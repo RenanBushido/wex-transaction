@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\src\WexTransaction\WexTransaction.Api\WexTransaction.Api.csproj" />
     <ProjectReference Include="..\..\src\WexTransaction\WexTransaction.Infra.Database\WexTransaction.Infra.Database.csproj" />
     <ProjectReference Include="..\..\src\WexTransaction\WexTransaction.Infra.Services.RatesExchange\WexTransaction.Infra.Services.RatesExchange.csproj" />
+    <ProjectReference Include="..\..\src\WexTransaction\WexTransaction.CrossCutting\WexTransaction.CrossCutting.csproj" />
   </ItemGroup>
 
 </Project>

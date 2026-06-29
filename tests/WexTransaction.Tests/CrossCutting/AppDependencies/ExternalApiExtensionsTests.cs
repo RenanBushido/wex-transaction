@@ -1,4 +1,5 @@
-namespace WexTransaction.Tests.Infrastructure.Services.RatesExchange.Extensions;
+namespace WexTransaction.Tests.CrossCutting.AppDependencies;
+
 public class ExternalApiExtensionsTests
 {
     private static IConfiguration CreateConfiguration(string? treasuryUrl = null, int? timeout = null)
@@ -73,7 +74,7 @@ public class ExternalApiExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddHttpClient();
-        var configuration = CreateConfiguration(timeout: null); // No timeout configured
+        var configuration = CreateConfiguration(timeout: null);
 
         // Act
         services.AddExternalApis(configuration);
@@ -81,7 +82,7 @@ public class ExternalApiExtensionsTests
 
         // Assert
         var provider = serviceProvider.GetService<IExchangeRateProvider>();
-        Assert.NotNull(provider); // Should use default 30 seconds
+        Assert.NotNull(provider);
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public class ExternalApiExtensionsTests
         // Act
         services
             .AddExternalApis(configuration)
-            .AddExternalApis(configuration); // Call twice
+            .AddExternalApis(configuration);
 
         var serviceProvider = services.BuildServiceProvider();
 

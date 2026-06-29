@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using Npgsql;
+using WexTransaction.Domain.Services;
 
 namespace WexTransaction.CrossCutting.AppDependencies;
 

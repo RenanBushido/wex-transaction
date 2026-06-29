@@ -1,16 +1,9 @@
 namespace WexTransaction.Api;
 
-using MediatR;
-using WexTransaction.Application.UseCases.GetPurchaseTransaction;
-using WexTransaction.Application.UseCases.SavePurchaseTransaction;
-
 public static class Endpoints
 {
     public static void MapTransactionEndpoints(this WebApplication app)
     {
-
-
-
         var group = app.MapGroup("/api/v1")
             .WithTags("Transactions");
 

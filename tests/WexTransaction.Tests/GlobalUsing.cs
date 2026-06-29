@@ -25,6 +25,6 @@ global using WexTransaction.Infra.Database.Data;
 global using WexTransaction.Infra.Database.Repositories;
 global using WexTransaction.Infra.Database;  // For BaseRepository namespace
 global using WexTransaction.Infra.Services.RatesExchange.Clients;
-global using WexTransaction.Infra.Services.RatesExchange.Extensions;
+global using WexTransaction.CrossCutting.AppDependencies;
 global using WexTransaction.Infra.Services.RatesExchange.Providers;
 global using Xunit;
