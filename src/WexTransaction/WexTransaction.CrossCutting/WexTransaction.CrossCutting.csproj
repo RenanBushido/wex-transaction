@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\WexTransaction.Domain\WexTransaction.Domain.csproj" />
+    <ProjectReference Include="..\WexTransaction.Infra.Database\WexTransaction.Infra.Database.csproj" />
+    <ProjectReference Include="..\WexTransaction.Infra.Services.RatesExchange\WexTransaction.Infra.Services.RatesExchange.csproj" />
+    <ProjectReference Include="..\WexTransaction.Application\WexTransaction.Application.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -30,7 +30,7 @@ public class UnitOfWorkTests
         // Arrange
         using var context = CreateInMemoryContext();
         var unitOfWork = new UnitOfWork(context);
-        var transaction = PurchaseTransaction.Create("Commit Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Commit Test", DateTime.UtcNow, 100m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -49,9 +49,9 @@ public class UnitOfWorkTests
         var unitOfWork = new UnitOfWork(context);
         var transactions = new[]
         {
-            PurchaseTransaction.Create("Tx1", DateTimeOffset.UtcNow, 100m),
-            PurchaseTransaction.Create("Tx2", DateTimeOffset.UtcNow, 200m),
-            PurchaseTransaction.Create("Tx3", DateTimeOffset.UtcNow, 300m)
+            PurchaseTransaction.Create("Tx1", DateTime.UtcNow, 100m),
+            PurchaseTransaction.Create("Tx2", DateTime.UtcNow, 200m),
+            PurchaseTransaction.Create("Tx3", DateTime.UtcNow, 300m)
         };
 
         // Act
@@ -69,7 +69,7 @@ public class UnitOfWorkTests
         // Arrange
         using var context = CreateInMemoryContext();
         var unitOfWork = new UnitOfWork(context);
-        var transaction = PurchaseTransaction.Create("Update Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Update Test", DateTime.UtcNow, 100m);
 
         await context.PurchaseTransactions.AddAsync(transaction);
         await unitOfWork.Commit(CancellationToken.None);
@@ -92,7 +92,7 @@ public class UnitOfWorkTests
         // Arrange
         using var context = CreateInMemoryContext();
         var unitOfWork = new UnitOfWork(context);
-        var transaction = PurchaseTransaction.Create("Delete Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Delete Test", DateTime.UtcNow, 100m);
 
         await context.PurchaseTransactions.AddAsync(transaction);
         await unitOfWork.Commit(CancellationToken.None);
@@ -127,13 +127,13 @@ public class UnitOfWorkTests
         // Arrange
         using var context = CreateInMemoryContext();
         var unitOfWork = new UnitOfWork(context);
-        var tx1 = PurchaseTransaction.Create("Tx1", DateTimeOffset.UtcNow, 100m);
+        var tx1 = PurchaseTransaction.Create("Tx1", DateTime.UtcNow, 100m);
 
         // Act - First commit
         await context.PurchaseTransactions.AddAsync(tx1);
         await unitOfWork.Commit(CancellationToken.None);
 
-        var tx2 = PurchaseTransaction.Create("Tx2", DateTimeOffset.UtcNow, 200m);
+        var tx2 = PurchaseTransaction.Create("Tx2", DateTime.UtcNow, 200m);
         await context.PurchaseTransactions.AddAsync(tx2);
         await unitOfWork.Commit(CancellationToken.None);
 
@@ -149,7 +149,7 @@ public class UnitOfWorkTests
         // Arrange
         using var context = CreateInMemoryContext();
         var unitOfWork = new UnitOfWork(context);
-        var transaction = PurchaseTransaction.Create("Exception Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Exception Test", DateTime.UtcNow, 100m);
 
         await context.PurchaseTransactions.AddAsync(transaction);
         await unitOfWork.Commit(CancellationToken.None);
@@ -166,31 +166,4 @@ public class UnitOfWorkTests
         Assert.Equal(1, saved);
     }
 
-    [Fact]
-    public async Task UnitOfWork_TransactionalIntegration_WithRepository()
-    {
-        // Arrange
-        using var context = CreateInMemoryContext();
-        var repository = new BaseRepository<PurchaseTransaction>(context);
-        var unitOfWork = new UnitOfWork(context);
-
-        var transactions = new[]
-        {
-            PurchaseTransaction.Create("Tx1", DateTimeOffset.UtcNow, 100m),
-            PurchaseTransaction.Create("Tx2", DateTimeOffset.UtcNow, 200m)
-        };
-
-        // Act
-        foreach (var tx in transactions)
-        {
-            repository.Create(tx);
-        }
-
-        await unitOfWork.Commit(CancellationToken.None);
-
-        var allTx = await repository.GetAll(CancellationToken.None);
-
-        // Assert
-        Assert.Equal(2, allTx.Count);
-    }
 }

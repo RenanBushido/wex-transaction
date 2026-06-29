@@ -106,7 +106,7 @@ public class PurchaseTransactionConfigTests
         using var context = CreateConfiguredContext();
         var description = "Config Conversion Test";
         var amount = 999.99m;
-        var date = new DateTimeOffset(2026, 6, 23, 12, 0, 0, TimeSpan.Zero);
+        var date = new DateTime(2026, 6, 23, 12, 0, 0, DateTimeKind.Utc);
 
         var transaction = PurchaseTransaction.Create(description, date, amount);
 
@@ -129,7 +129,7 @@ public class PurchaseTransactionConfigTests
     {
         // Arrange
         using var context = CreateConfiguredContext();
-        var transaction = PurchaseTransaction.Create("X", DateTimeOffset.UtcNow, 1m);
+        var transaction = PurchaseTransaction.Create("X", DateTime.UtcNow, 1m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -148,7 +148,7 @@ public class PurchaseTransactionConfigTests
         // Arrange
         using var context = CreateConfiguredContext();
         var maxDescription = new string('A', 50);
-        var transaction = PurchaseTransaction.Create(maxDescription, DateTimeOffset.UtcNow, 1m);
+        var transaction = PurchaseTransaction.Create(maxDescription, DateTime.UtcNow, 1m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -172,7 +172,7 @@ public class PurchaseTransactionConfigTests
         foreach (var amount in amounts)
         {
             // Act
-            var transaction = PurchaseTransaction.Create($"Amount {amount}", DateTimeOffset.UtcNow, amount);
+            var transaction = PurchaseTransaction.Create($"Amount {amount}", DateTime.UtcNow, amount);
             await context.PurchaseTransactions.AddAsync(transaction);
         }
 
@@ -192,8 +192,8 @@ public class PurchaseTransactionConfigTests
     {
         // Arrange
         using var context = CreateConfiguredContext();
-        var transaction1 = PurchaseTransaction.Create("Tx1", DateTimeOffset.UtcNow, 100m);
-        var transaction2 = PurchaseTransaction.Create("Tx2", DateTimeOffset.UtcNow, 100m);
+        var transaction1 = PurchaseTransaction.Create("Tx1", DateTime.UtcNow, 100m);
+        var transaction2 = PurchaseTransaction.Create("Tx2", DateTime.UtcNow, 100m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction1);
@@ -210,7 +210,7 @@ public class PurchaseTransactionConfigTests
     {
         // Arrange
         using var context = CreateConfiguredContext();
-        var transaction = PurchaseTransaction.Create("Required Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Required Test", DateTime.UtcNow, 100m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -222,6 +222,6 @@ public class PurchaseTransactionConfigTests
         Assert.NotEqual(Guid.Empty, (Guid)entry.Property(t => t.Id).CurrentValue!);
         Assert.NotNull((object?)entry.Property(t => t.Description).CurrentValue);
         Assert.NotNull((object?)entry.Property(t => t.Amount).CurrentValue);
-        Assert.NotEqual(DateTimeOffset.MinValue, (DateTimeOffset)entry.Property(t => t.TransactionDate).CurrentValue!);
+        Assert.NotEqual(DateTime.MinValue, (DateTime)entry.Property(t => t.TransactionDate).CurrentValue!);
     }
 }

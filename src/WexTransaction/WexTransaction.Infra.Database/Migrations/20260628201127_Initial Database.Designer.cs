@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using WexTransaction.Infra.Database;
+using WexTransaction.Infra.Database.Data;
 
 #nullable disable
 
 namespace WexTransaction.Infra.Database.Migrations
 {
     [DbContext(typeof(WexTransactionDbContext))]
-    [Migration("20260627164047_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260628201127_Initial Database")]
+    partial class InitialDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,30 +28,31 @@ namespace WexTransaction.Infra.Database.Migrations
             modelBuilder.Entity("WexTransaction.Domain.Entities.PurchaseTransaction", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("transaction_id");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasColumnName("amount");
+                        .HasColumnName("transaction_amount");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("description");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar")
+                        .HasColumnName("transaction_description");
 
-                    b.Property<DateTimeOffset>("TransactionDate")
+                    b.Property<DateTime>("TransactionDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("transaction_date");
 
                     b.HasKey("Id");
 
-                    b.ToTable("purchase_transactions", (string)null);
+                    b.ToTable("tb_purchase_transaction", (string)null);
                 });
 #pragma warning restore 612, 618
         }

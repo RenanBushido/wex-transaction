@@ -15,9 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WexTransaction.Application\WexTransaction.Application.csproj" />
-    <ProjectReference Include="..\WexTransaction.Infra.Database\WexTransaction.Infra.Database.csproj" />
-    <ProjectReference Include="..\WexTransaction.Infra.Services.RatesExchange\WexTransaction.Infra.Services.RatesExchange.csproj" />
+    <ProjectReference Include="..\WexTransaction.CrossCutting\WexTransaction.CrossCutting.csproj" />
   </ItemGroup>
 
 </Project>

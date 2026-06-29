@@ -1,6 +1,6 @@
 namespace WexTransaction.Infra.Database.Repositories;
 
-public class TransactionRepository(WexTransactionDbContext context) : BaseRepository<PurchaseTransaction>(context), ITransactionRepository
+public class TransactionRepository(WexTransactionDbContext context) : ITransactionRepository
 {
     #region Variables
     private readonly WexTransactionDbContext _context = context;

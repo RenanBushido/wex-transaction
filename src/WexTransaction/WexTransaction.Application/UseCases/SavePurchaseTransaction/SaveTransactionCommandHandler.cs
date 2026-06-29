@@ -1,11 +1,11 @@
 namespace WexTransaction.Application.UseCases.SavePurchaseTransaction;
 
 public class SaveTransactionCommandHandler(
-    ITransactionRepository repository,
+    ITransactionRepository repository,    
     IUnitOfWork unitOfWork) : IRequestHandler<SaveTransactionCommand, Guid>
 {
     #region Variables
-    private readonly ITransactionRepository _repository = repository;
+    private readonly ITransactionRepository _repository = repository;    
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     
     #endregion

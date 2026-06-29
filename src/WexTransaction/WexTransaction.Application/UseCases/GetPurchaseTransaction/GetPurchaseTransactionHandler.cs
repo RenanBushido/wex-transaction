@@ -1,13 +1,13 @@
 namespace WexTransaction.Application.UseCases.GetPurchaseTransaction;
 
 public sealed class GetPurchaseTransactionHandler(
-    ITransactionRepository repository,
+    ITransactionDapperRepository repository,
     IExchangeRateProvider exchangeRate
 ) : IRequestHandler<GetPurchaseTransactionRequest, GetPurchaseTransactionResponse>
 {
     #region Variables
 
-    private readonly ITransactionRepository _repository = repository;
+    private readonly ITransactionDapperRepository _repository = repository;
     private readonly IExchangeRateProvider _exchangeRate = exchangeRate;
 
     #endregion

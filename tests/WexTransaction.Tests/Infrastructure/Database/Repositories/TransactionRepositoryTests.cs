@@ -18,7 +18,7 @@ public class TransactionRepositoryTests
         var repository = new TransactionRepository(context);
         var unitOfWork = new UnitOfWork(context);
 
-        var transaction = PurchaseTransaction.Create("Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Test", DateTime.UtcNow, 100m);
         context.PurchaseTransactions.Add(transaction);
         await unitOfWork.Commit(default);
 

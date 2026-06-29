@@ -11,7 +11,7 @@ public class WexTransactionDbContext(DbContextOptions<WexTransactionDbContext> o
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(PurchaseTransactionConfig).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(WexTransactionDbContext).Assembly);
         
         base.OnModelCreating(modelBuilder);
     }

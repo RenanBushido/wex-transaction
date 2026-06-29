@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../WexTransaction.Domain/WexTransaction.Domain.csproj" />
-    <ProjectReference Include="../WexTransaction.Application/WexTransaction.Application.csproj" />
   </ItemGroup>
 
 </Project>

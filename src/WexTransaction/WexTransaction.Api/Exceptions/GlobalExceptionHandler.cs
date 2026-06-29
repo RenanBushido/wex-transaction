@@ -1,18 +1,13 @@
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using WexTransaction.Domain.Exceptions;
-
 namespace WexTransaction.Api.Exceptions;
 
-public sealed class GlobalExceptionHandler : IExceptionHandler
+public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
 {
-    private readonly IProblemDetailsService _problemDetailsService;
+    #region Variables
+    private readonly IProblemDetailsService _problemDetailsService = problemDetailsService;
 
-    public GlobalExceptionHandler(IProblemDetailsService problemDetailsService)
-    {
-        _problemDetailsService = problemDetailsService;
-    }
+    #endregion
 
+    #region Public Methods
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,
@@ -23,6 +18,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
         var statusCode = exception switch
         {
+            ValidationException => StatusCodes.Status400BadRequest,            
             InvalidAmountException => StatusCodes.Status400BadRequest,
             InvalidDescriptionException => StatusCodes.Status400BadRequest,
             InvalidTransactionDateException => StatusCodes.Status400BadRequest,
@@ -43,4 +39,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             }
         });
     }
+
+    #endregion
 }

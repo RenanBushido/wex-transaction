@@ -1,7 +1,6 @@
 namespace WexTransaction.Domain.Interfaces;
 
-public interface ITransactionRepository : IBaseRepository<PurchaseTransaction>
+public interface ITransactionRepository
 {
     Task SavePurchaseTransaction(PurchaseTransaction transaction);
-    Task<PurchaseTransaction?> GetByIdAsync(Guid id);
 }

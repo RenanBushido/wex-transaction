@@ -21,7 +21,6 @@ public sealed class PurchaseTransactionConfig : IEntityTypeConfiguration<Purchas
 
         builder.Property(p => p.TransactionDate)
             .HasColumnName("transaction_date")
-            .HasColumnType("uuid")
             .IsRequired();
 
         builder.Property(p => p.Description)

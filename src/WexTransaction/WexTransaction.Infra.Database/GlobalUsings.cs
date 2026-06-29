@@ -1,12 +1,9 @@
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-global using Microsoft.Extensions.Configuration;
-global using Microsoft.Extensions.DependencyInjection;
 global using WexTransaction.Domain.Entities;
 global using WexTransaction.Domain.ValueObjects;
-global using WexTransaction.Infra.Database.Config;
 global using WexTransaction.Infra.Database.Data;
-global using WexTransaction.Infra.Database.Repositories;
-global using WexTransaction.Domain.Common;
 global using WexTransaction.Domain.Interfaces;
+global using System.Data;
+global using Dapper;

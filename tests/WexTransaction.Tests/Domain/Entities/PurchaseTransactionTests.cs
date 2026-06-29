@@ -2,7 +2,7 @@ namespace WexTransaction.Tests.Domain.Entities;
 
 public class PurchaseTransactionTests
 {
-    private static readonly DateTimeOffset ValidDate = new DateTimeOffset(2026, 6, 23, 8, 30, 0, TimeSpan.Zero);
+    private static readonly DateTime ValidDate = new DateTime(2026, 6, 23, 8, 30, 0, DateTimeKind.Utc);
     private const string _validDescription = "Coffee purchase";
     private const decimal ValidAmount = 200.24m;
 
@@ -31,15 +31,6 @@ public class PurchaseTransactionTests
     {
         Assert.Throws<InvalidTransactionDateException>(() =>
             PurchaseTransaction.Create(_validDescription, default, ValidAmount));
-    }
-
-    [Fact]
-    public void Create_WithNonUtcDate_ThrowsInvalidTransactionDateException()
-    {
-        var nonUtcDate = new DateTimeOffset(2026, 6, 23, 8, 30, 0, TimeSpan.FromHours(-3));
-
-        Assert.Throws<InvalidTransactionDateException>(() =>
-            PurchaseTransaction.Create(_validDescription, nonUtcDate, ValidAmount));
     }
 
     [Fact]

@@ -40,7 +40,7 @@ public class WexTransactionDbContextTests
     {
         // Arrange
         using var context = CreateInMemoryContext();
-        var transaction = PurchaseTransaction.Create("Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Test", DateTime.UtcNow, 100m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -56,7 +56,7 @@ public class WexTransactionDbContextTests
     {
         // Arrange
         using var context = CreateInMemoryContext();
-        var transaction = PurchaseTransaction.Create("Test Query", DateTimeOffset.UtcNow, 250m);
+        var transaction = PurchaseTransaction.Create("Test Query", DateTime.UtcNow, 250m);
         await context.PurchaseTransactions.AddAsync(transaction);
         await context.SaveChangesAsync();
 
@@ -73,7 +73,7 @@ public class WexTransactionDbContextTests
     {
         // Arrange
         using var context = CreateInMemoryContext();
-        var transaction = PurchaseTransaction.Create("Original", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Original", DateTime.UtcNow, 100m);
         await context.PurchaseTransactions.AddAsync(transaction);
         await context.SaveChangesAsync();
 
@@ -93,7 +93,7 @@ public class WexTransactionDbContextTests
     {
         // Arrange
         using var context = CreateInMemoryContext();
-        var transaction = PurchaseTransaction.Create("To Delete", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("To Delete", DateTime.UtcNow, 100m);
         await context.PurchaseTransactions.AddAsync(transaction);
         await context.SaveChangesAsync();
 
@@ -113,7 +113,7 @@ public class WexTransactionDbContextTests
     {
         // Arrange
         using var context = CreateInMemoryContext();
-        var transaction = PurchaseTransaction.Create("Config Test", DateTimeOffset.UtcNow, 100m);
+        var transaction = PurchaseTransaction.Create("Config Test", DateTime.UtcNow, 100m);
 
         // Act
         await context.PurchaseTransactions.AddAsync(transaction);
@@ -134,9 +134,9 @@ public class WexTransactionDbContextTests
         using var context = CreateInMemoryContext();
         var transactions = new[]
         {
-            PurchaseTransaction.Create("Tx1", DateTimeOffset.UtcNow, 100m),
-            PurchaseTransaction.Create("Tx2", DateTimeOffset.UtcNow, 200m),
-            PurchaseTransaction.Create("Tx3", DateTimeOffset.UtcNow, 300m)
+            PurchaseTransaction.Create("Tx1", DateTime.UtcNow, 100m),
+            PurchaseTransaction.Create("Tx2", DateTime.UtcNow, 200m),
+            PurchaseTransaction.Create("Tx3", DateTime.UtcNow, 300m)
         };
 
         // Act
@@ -153,7 +153,7 @@ public class WexTransactionDbContextTests
         // Arrange
         using var context = CreateInMemoryContext();
         var description = "Data Preservation Test";
-        var date = new DateTimeOffset(2026, 6, 23, 8, 30, 0, TimeSpan.Zero);
+        var date = new DateTime(2026, 6, 23, 8, 30, 0, DateTimeKind.Utc);
         var amount = 123.45m;
 
         var transaction = PurchaseTransaction.Create(description, date, amount);

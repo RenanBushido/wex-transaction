@@ -2,9 +2,9 @@ namespace WexTransaction.Tests.Domain.Services;
 
 public class ExchangeRateSelectorTests
 {
-    private static readonly DateTimeOffset _purchaseDate = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime _purchaseDate = new(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
 
-    private static PurchaseTransaction CreateTransaction(decimal amount = 200.24m, DateTimeOffset? date = null) =>
+    private static PurchaseTransaction CreateTransaction(decimal amount = 200.24m, DateTime? date = null) =>
         PurchaseTransaction.Create("Test transaction", date ?? _purchaseDate, amount);
 
     private static ExchangeRate Rate(decimal rate, DateTimeOffset effectiveDate) =>

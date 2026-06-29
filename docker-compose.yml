@@ -3,7 +3,7 @@ services:
     image: postgres:15.18-alpine3.23
     container_name: wex-postgres
     environment:
-      POSTGRES_DB: wex
+      POSTGRES_DB: WexTransactionDB
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
