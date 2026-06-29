@@ -9,3 +9,6 @@ global using WexTransaction.Application.UseCases.GetPurchaseTransaction;
 global using WexTransaction.Application.UseCases.SavePurchaseTransaction;
 global using WexTransaction.CrossCutting.AppDependencies;
 global using WexTransaction.Domain.Exceptions;
+global using Serilog;
+global using Serilog.Events;
+

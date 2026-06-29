@@ -15,7 +15,10 @@ public class GetPurchaseTransactionHandlerTests
     {
         _mockRepository = new Mock<ITransactionDapperRepository>();
         _mockExchangeRateProvider = new Mock<IExchangeRateProvider>();
-        _handler = new GetPurchaseTransactionHandler(_mockRepository.Object, _mockExchangeRateProvider.Object);
+        _handler = new GetPurchaseTransactionHandler(
+            _mockRepository.Object,
+            _mockExchangeRateProvider.Object,
+            new Mock<ILogger<GetPurchaseTransactionHandler>>().Object);
     }
 
     [Fact]
@@ -35,7 +38,7 @@ public class GetPurchaseTransactionHandlerTests
             .ReturnsAsync(transaction);
 
         _mockExchangeRateProvider
-            .Setup(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country.ToLower(), Currency.ToLower()))
+            .Setup(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country, Currency))
             .ReturnsAsync(exchangeRates);
 
         // Act
@@ -49,7 +52,7 @@ public class GetPurchaseTransactionHandlerTests
         Assert.True(result.ConvertedValue > 0);
 
         _mockRepository.Verify(r => r.GetByIdAsync(transaction.Id), Times.Once);
-        _mockExchangeRateProvider.Verify(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country.ToLower(), Currency.ToLower()), Times.Once);
+        _mockExchangeRateProvider.Verify(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country, Currency), Times.Once);
     }
 
     [Fact]
@@ -90,7 +93,7 @@ public class GetPurchaseTransactionHandlerTests
             .ReturnsAsync(transaction);
 
         _mockExchangeRateProvider
-            .Setup(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country.ToLower(), Currency.ToLower()))
+            .Setup(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country, Currency))
             .ReturnsAsync(exchangeRates);
 
         // Act

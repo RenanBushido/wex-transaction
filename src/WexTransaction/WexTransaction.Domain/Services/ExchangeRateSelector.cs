@@ -2,7 +2,7 @@ namespace WexTransaction.Domain.Services;
 
 public static class ExchangeRateSelector
 {
-    public static ConvertedTransactionResult Convert(
+    public static ConvertedTransactionResult Convert(        
         PurchaseTransaction transaction,
         IEnumerable<ExchangeRate> rates)
     {

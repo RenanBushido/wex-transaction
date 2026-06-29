@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace WexTransaction.Tests.Api;
 
 public class GlobalExceptionHandlerTests
@@ -5,7 +7,8 @@ public class GlobalExceptionHandlerTests
     private static GlobalExceptionHandler CreateHandler(IProblemDetailsService? problemDetailsService = null)
     {
         var svc = problemDetailsService ?? new AlwaysTrueProblemDetailsService();
-        return new GlobalExceptionHandler(svc);
+        var logger = new Mock<ILogger<GlobalExceptionHandler>>().Object;
+        return new GlobalExceptionHandler(svc, logger);
     }
 
     private static HttpContext CreateHttpContext()
@@ -96,15 +99,12 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WithDomainException_MapsTo417UnprocessableEntity()
     {
-        // Arrange
         var context = CreateHttpContext();
         var exception = new DomainException("Generic domain error");
         var handler = CreateHandler();
 
-        // Act
         var result = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         Assert.True(result);
         Assert.Equal(StatusCodes.Status417ExpectationFailed, context.Response.StatusCode);
     }
@@ -112,15 +112,12 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WithValidationException_MapsTo400BadRequest()
     {
-        // Arrange
         var context = CreateHttpContext();
         var validationException = new FluentValidation.ValidationException("Validation failed");
         var handler = CreateHandler();
 
-        // Act
         var result = await handler.TryHandleAsync(context, validationException, CancellationToken.None);
 
-        // Assert
         Assert.True(result);
         Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
     }
@@ -128,17 +125,45 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WithUnhandledException_MapsTo500InternalServerError()
     {
-        // Arrange
         var context = CreateHttpContext();
         var exception = new Exception("Unexpected error");
         var handler = CreateHandler();
 
-        // Act
         var result = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        // Assert
         Assert.True(result);
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_LogsErrorWithExceptionType()
+    {
+        var loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
+        var handler = new GlobalExceptionHandler(new AlwaysTrueProblemDetailsService(), loggerMock.Object);
+        var context = CreateHttpContext();
+        var exception = new InvalidOperationException("Test error");
+
+        await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("InvalidOperationException")),
+                exception,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_AcceptsILoggerDependency()
+    {
+        var loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
+        var svc = new AlwaysTrueProblemDetailsService();
+
+        var exception = Record.Exception(() => new GlobalExceptionHandler(svc, loggerMock.Object));
+
+        Assert.Null(exception);
     }
 
     private sealed class AlwaysTrueProblemDetailsService : IProblemDetailsService

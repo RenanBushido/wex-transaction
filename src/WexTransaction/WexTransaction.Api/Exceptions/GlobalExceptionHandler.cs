@@ -1,9 +1,12 @@
 namespace WexTransaction.Api.Exceptions;
 
-public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+public sealed class GlobalExceptionHandler(
+    IProblemDetailsService problemDetailsService,
+    ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     #region Variables
     private readonly IProblemDetailsService _problemDetailsService = problemDetailsService;
+    private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
     #endregion
 
@@ -13,6 +16,8 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
         Exception exception,
         CancellationToken cancellationToken)
     {
+        _logger.LogError(exception, "Unhandled exception {ExceptionType}", exception.GetType().Name);
+
         int statusCode;
 
         if (exception is DomainException domainException)

@@ -25,11 +25,13 @@ public class ExchangeRateTests
     }
 
     [Fact]
-    public void Constructor_NonUtcEffectiveDate_ThrowsArgumentOutOfRangeException()
+    public void Constructor_NonUtcEffectiveDate_CreatesExchangeRate()
     {
         var nonUtcDate = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.FromHours(-3));
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ExchangeRate("Brazil", "Real", 5.25m, nonUtcDate));
+        var rate = new ExchangeRate("Brazil", "Real", 5.25m, nonUtcDate);
+
+        Assert.Equal(nonUtcDate, rate.EffectiveDate);
     }
 
     [Theory]

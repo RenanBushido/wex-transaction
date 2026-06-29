@@ -116,7 +116,7 @@ public class ITreasuryExchangeRateClientTests
         // Assert
         Assert.NotNull(sortParam);
         Assert.True(sortParam.HasDefaultValue);
-        Assert.Equal("-effective_date", sortParam.DefaultValue);
+        Assert.Equal("effective_date", sortParam.DefaultValue);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class ITreasuryExchangeRateClientTests
     {
         // Arrange
         var dataType = typeof(TreasuryRateData);
-        var expectedProperties = new[] { "Country", "Currency", "ExchangeRate", "EffectiveDate" };
+        var expectedProperties = new[] { "Country_Currency_Desc", "Exchange_Rate", "Record_Date", "Effective_Date" };
 
         // Act
         var actualProperties = dataType.GetProperties().Select(p => p.Name).ToArray();
@@ -194,7 +194,7 @@ public class ITreasuryExchangeRateClientTests
         var dataType = typeof(TreasuryRateData);
 
         // Act
-        var exchangeRateProperty = dataType.GetProperty("ExchangeRate");
+        var exchangeRateProperty = dataType.GetProperty("Exchange_Rate");
 
         // Assert
         Assert.NotNull(exchangeRateProperty);

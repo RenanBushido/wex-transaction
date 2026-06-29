@@ -1,11 +1,16 @@
+using Microsoft.Extensions.Logging;
+
 namespace WexTransaction.Infra.Services.RatesExchange.Providers;
 
-public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : IExchangeRateProvider
+public class TreasuryExchangeRateProvider(
+    ITreasuryExchangeRateClient client,
+    ILogger<TreasuryExchangeRateProvider> logger) : IExchangeRateProvider
 {
     #region Variables
     private readonly ITreasuryExchangeRateClient _client = client;
     private readonly ConcurrentDictionary<string, CachedRates> _cache = new();
     private readonly TimeSpan _cacheTtl = TimeSpan.FromHours(1);
+    private readonly ILogger<TreasuryExchangeRateProvider> _logger = logger;
 
     #endregion
 
@@ -21,6 +26,8 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
 
         try
         {
+            _logger.LogInformation("Fetching exchange rates for {Country}-{Currency} on {Date}", country, currency, date);
+
             var fields = $"&fields=country_currency_desc,exchange_rate,record_date,effective_date";
             var filter = $"&filter=country_currency_desc:in:({Capitalize(country)}-{Capitalize(currency)}),record_date:lte:{date}";
             var sort = $"?sort=-record_date";
@@ -28,8 +35,12 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
             var response = await _client.GetExchangeRatesAsync("", fields, filter, 1);
 
             if (response?.Data == null || response.Data.Count == 0)
+            {
+                _logger.LogWarning("No exchange rate found for {Country}-{Currency}", country, currency);
+
                 throw new CurrencyConversionUnavailableException(
                     $"No exchange rate found for country '{country}' and currency '{currency}'.");
+            }
 
             var exchangeRates = response.Data
                 .Where(d => d.Country_Currency_Desc != null && d.Exchange_Rate != 0 && d.Effective_Date != null)
@@ -45,25 +56,37 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
                 .ToList();
 
             if (exchangeRates.Count == 0)
+            {
+                _logger.LogWarning("No valid exchange rate found for {Country}-{Currency}", country, currency);
+
                 throw new CurrencyConversionUnavailableException(
                     $"No valid exchange rate found for country '{country}' and currency '{currency}'.");
+            }
 
             var cached = new CachedRates(exchangeRates, DateTime.UtcNow);
             _cache.AddOrUpdate(cacheKey, cached, (_, _) => cached);
 
+            _logger.LogInformation("Exchange rates loaded for {Country}-{Currency}: {Count} record(s)", country, currency, exchangeRates.Count);
+
             return exchangeRates;
         }
-        catch (CurrencyConversionUnavailableException)
+        catch (CurrencyConversionUnavailableException cce)
         {
+            _logger.LogError(cce, "Currency conversion unavailable for {Country}-{Currency}", country, currency);
+
             throw;
         }
         catch (HttpRequestException ex)
         {
+            _logger.LogError(ex, "Failed to fetch exchange rates from Treasury API for {Country}-{Currency}", country, currency);
+
             throw new CurrencyConversionUnavailableException(
                 $"Failed to fetch exchange rates from Treasury API: {ex.Message}");
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error fetching exchange rates for {Country}-{Currency}", country, currency);
+
             throw new CurrencyConversionUnavailableException(
                 $"An error occurred while fetching exchange rates: {ex.Message}");
         }

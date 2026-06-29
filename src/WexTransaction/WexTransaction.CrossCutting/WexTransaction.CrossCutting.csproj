@@ -5,6 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WexTransaction.Domain\WexTransaction.Domain.csproj" />
     <ProjectReference Include="..\WexTransaction.Infra.Database\WexTransaction.Infra.Database.csproj" />
     <ProjectReference Include="..\WexTransaction.Infra.Services.RatesExchange\WexTransaction.Infra.Services.RatesExchange.csproj" />
