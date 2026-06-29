@@ -37,5 +37,5 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-# Run application
+# Run application1
 ENTRYPOINT ["dotnet", "WexTransaction.Api.dll"]

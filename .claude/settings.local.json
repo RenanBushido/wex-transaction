@@ -23,7 +23,9 @@
       "Bash(git rm *)",
       "Bash(tee /tmp/coverage-output.txt)",
       "Bash(openspec archive *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(docker compose logs *)",
+      "Bash(docker compose *)"
     ]
   }
 }
