@@ -1,4 +1,8 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using WexTransaction.Infra.Database.Data;
 
 namespace WexTransaction.Infra.Database.Extensions;
 
@@ -29,6 +33,29 @@ public static class DatabaseExtensions
     /// </example>
     public static WebApplication MigrateDatabase(this WebApplication app)
     {
-        throw new NotImplementedException("Implementation will be added in Task 2.");
+        using var scope = app.Services.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger>();
+
+        try
+        {
+            logger.LogInformation("Applying pending EF Core migrations...");
+
+            var dbContext = scope.ServiceProvider.GetRequiredService<WexTransactionDbContext>();
+            dbContext.Database.Migrate();
+
+            logger.LogInformation("Database migrations applied successfully");
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogError(ex, "Failed to apply migrations: DbContext not configured");
+            throw;
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Failed to apply migrations: Database error occurred");
+            throw;
+        }
+
+        return app;
     }
 }
