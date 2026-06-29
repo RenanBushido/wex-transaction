@@ -9,3 +9,5 @@ global using WexTransaction.Infra.Database.Repositories;
 global using WexTransaction.Infra.Services.RatesExchange.Clients;
 global using WexTransaction.Infra.Services.RatesExchange.Extensions;
 global using WexTransaction.Infra.Services.RatesExchange.Providers;
+global using System.Data;
+global using Npgsql;

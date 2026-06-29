@@ -5,3 +5,6 @@ global using WexTransaction.Domain.Exceptions;
 global using WexTransaction.Domain.Interfaces;
 global using WexTransaction.Domain.ValueObjects;
 global using WexTransaction.Infra.Services.RatesExchange.Clients;
+global using Polly;
+global using Polly.Timeout;
+

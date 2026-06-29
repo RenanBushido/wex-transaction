@@ -1,16 +1,11 @@
 namespace WexTransaction.Infra.Services.RatesExchange.Extensions;
 
-using Polly;
-using Polly.CircuitBreaker;
-using Polly.Retry;
-using Polly.Timeout;
-
 public static class ResiliencePoliciesExtensions
 {
-    private const int DefaultRetryAttempts = 3;
-    private const int DefaultTimeoutSeconds = 10;
-    private const int CircuitBreakerThreshold = 5;
-    private const int CircuitBreakerTimeoutSeconds = 30;
+    private const int _defaultRetryAttempts = 3;
+    private const int _defaultTimeoutSeconds = 10;
+    private const int _circuitBreakerThreshold = 5;
+    private const int _circuitBreakerTimeoutSeconds = 30;
 
     public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
@@ -22,7 +17,7 @@ public static class ResiliencePoliciesExtensions
                 r.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
                 r.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)
             .WaitAndRetryAsync(
-                retryCount: DefaultRetryAttempts,
+                retryCount: _defaultRetryAttempts,
                 sleepDurationProvider: retryAttempt =>
                     TimeSpan.FromSeconds(Math.Pow(2, retryAttempt - 1)),
                 onRetry: (outcome, timespan, attemptNumber, context) =>
@@ -41,8 +36,8 @@ public static class ResiliencePoliciesExtensions
                 r.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
                 r.StatusCode == System.Net.HttpStatusCode.GatewayTimeout)
             .CircuitBreakerAsync(
-                handledEventsAllowedBeforeBreaking: CircuitBreakerThreshold,
-                durationOfBreak: TimeSpan.FromSeconds(CircuitBreakerTimeoutSeconds),
+                handledEventsAllowedBeforeBreaking: _circuitBreakerThreshold,
+                durationOfBreak: TimeSpan.FromSeconds(_circuitBreakerTimeoutSeconds),
                 onBreak: (outcome, timespan) =>
                 {
                     System.Diagnostics.Debug.WriteLine(
@@ -57,7 +52,7 @@ public static class ResiliencePoliciesExtensions
     public static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
     {
         return Policy.TimeoutAsync<HttpResponseMessage>(
-            TimeSpan.FromSeconds(DefaultTimeoutSeconds),
+            TimeSpan.FromSeconds(_defaultTimeoutSeconds),
             TimeoutStrategy.Optimistic);
     }
 

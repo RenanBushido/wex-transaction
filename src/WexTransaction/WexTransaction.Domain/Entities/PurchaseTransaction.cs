@@ -21,7 +21,8 @@ public sealed class PurchaseTransaction : BaseAuditableEntity
             Id = Guid.NewGuid(),
             Description = new TransactionDescription(description),
             TransactionDate = transactionDate,
-            Amount = new Money(amount)
+            Amount = new Money(amount),
+            CreatedAt = DateTime.UtcNow
         };
     }
 }

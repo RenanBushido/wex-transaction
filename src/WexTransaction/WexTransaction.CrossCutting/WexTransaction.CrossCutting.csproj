@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\WexTransaction.Domain\WexTransaction.Domain.csproj" />
     <ProjectReference Include="..\WexTransaction.Infra.Database\WexTransaction.Infra.Database.csproj" />
     <ProjectReference Include="..\WexTransaction.Infra.Services.RatesExchange\WexTransaction.Infra.Services.RatesExchange.csproj" />

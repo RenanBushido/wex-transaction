@@ -1,11 +1,4 @@
 namespace WexTransaction.Tests.Api.Endpoints;
-
-using WexTransaction.Api;
-using WexTransaction.Application.UseCases.GetPurchaseTransaction;
-using WexTransaction.Application.UseCases.SavePurchaseTransaction;
-using Moq;
-using MediatR;
-
 public class TransactionEndpointsTests
 {
     private readonly Mock<IMediator> _mockMediator;

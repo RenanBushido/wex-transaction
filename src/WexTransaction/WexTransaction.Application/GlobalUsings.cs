@@ -1,8 +1,7 @@
-global using System.Reflection;
 global using MediatR;
-global using Microsoft.Extensions.DependencyInjection;
 global using WexTransaction.Domain.Entities;
 global using WexTransaction.Domain.Interfaces;
 global using WexTransaction.Domain.Services;
-global using WexTransaction.Application.Behaviors;
 global using FluentValidation;
+global using AutoMapper;
+global using WexTransaction.Application.UseCases.GetPurchaseTransaction;

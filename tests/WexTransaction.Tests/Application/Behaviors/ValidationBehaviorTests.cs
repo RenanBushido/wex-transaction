@@ -1,10 +1,5 @@
 namespace WexTransaction.Tests.Application.Behaviors;
 
-using FluentValidation;
-using Moq;
-using WexTransaction.Application.Behaviors;
-using WexTransaction.Application.UseCases.SavePurchaseTransaction;
-
 public class ValidationBehaviorTests
 {
     private readonly List<IValidator<SaveTransactionCommand>> _validators;
