@@ -51,4 +51,55 @@ public class GetPurchaseTransactionHandlerTests
         _mockRepository.Verify(r => r.GetByIdAsync(transaction.Id), Times.Once);
         _mockExchangeRateProvider.Verify(e => e.GetExchangeRatesAsync(Country, Currency), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WithNonExistentTransactionId_ReturnsNull()
+    {
+        // Arrange
+        var nonExistentId = Guid.NewGuid();
+        var request = new GetPurchaseTransactionRequest(nonExistentId, Country, Currency);
+
+        _mockRepository
+            .Setup(r => r.GetByIdAsync(nonExistentId))
+            .ReturnsAsync((PurchaseTransaction)null!);
+
+        // Act
+        var result = await _handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        Assert.Null(result);
+        _mockRepository.Verify(r => r.GetByIdAsync(nonExistentId), Times.Once);
+        _mockExchangeRateProvider.Verify(e => e.GetExchangeRatesAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WithValidTransactionAndExchangeRates_ConvertsAmountCorrectly()
+    {
+        // Arrange
+        var transaction = PurchaseTransaction.Create("Book", TransactionDate, 50m);
+        var exchangeRate = 3.50m; // 1 USD = 3.50 BRL
+        var exchangeRates = new List<ExchangeRate>
+        {
+            new ExchangeRate(Country, Currency, exchangeRate, new DateTimeOffset(TransactionDate))
+        };
+
+        var request = new GetPurchaseTransactionRequest(transaction.Id, Country, Currency);
+
+        _mockRepository
+            .Setup(r => r.GetByIdAsync(transaction.Id))
+            .ReturnsAsync(transaction);
+
+        _mockExchangeRateProvider
+            .Setup(e => e.GetExchangeRatesAsync(Country, Currency))
+            .ReturnsAsync(exchangeRates);
+
+        // Act
+        var result = await _handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        // Expected: 50m * 3.50m = 175m
+        Assert.Equal(175m, result.ConvertedValue);
+        Assert.Equal(exchangeRate, result.TaxRate);
+    }
 }
