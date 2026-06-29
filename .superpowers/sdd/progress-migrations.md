@@ -36,10 +36,16 @@
   - Verdict: Spec ✅ Verification complete ✅
   - Details: Verified Serilog configured, EF Core log level set, all migration logs in place (Information/Error levels)
 
+- [x] Task 5: Add Unit Tests for Migration Extension
+  - Status: DONE (commits 54d56b5 → 35aed34, final fix approved)
+  - Verdict: Spec ✅ Code Quality ✅
+  - Details: 3 tests (return value, service scope, logging) with proper Moq patterns
+  - Process: 4 iterations due to assertion pattern issues, final fix removed fragile exception messages
+
 ### Progress Summary
-**Completed: 4/10 tasks** ✅
-- Tasks 1-4: Implementation foundation complete
-- Tasks 5-6: Unit/Integration tests (coming)
+**Completed: 5/10 tasks** ✅
+- Tasks 1-5: Implementation + unit tests complete
+- Task 6: Integration tests (in progress)
 - Tasks 7-10: Final testing and documentation (coming)
 
 ### Notes

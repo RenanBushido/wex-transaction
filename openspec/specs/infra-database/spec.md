@@ -18,6 +18,14 @@ The system SHALL provide a DbContext that manages purchase transaction entities 
 - **WHEN** the application starts
 - **THEN** pending EF Core migrations are applied automatically if database is not up to date
 
+#### Scenario: Database is created if it does not exist
+- **WHEN** the application starts and the database does not exist
+- **THEN** EF Core creates the database based on the configured connection string
+
+#### Scenario: Migration execution is logged for observability
+- **WHEN** migrations are applied during application startup
+- **THEN** Serilog logs are written with migration details including which migrations were applied and execution status
+
 #### Scenario: Transaction entity is mapped to database
 - **WHEN** a PurchaseTransaction is persisted
 - **THEN** it is stored in the `purchase_transactions` table with columns: id, description, transaction_date, amount
