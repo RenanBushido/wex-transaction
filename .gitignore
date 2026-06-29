@@ -14,8 +14,7 @@ obj/
 .env.*
 
 # Database data (keep folder tracked via .gitkeep)
-database/*
-!database/.gitkeep
+database/
 
 # NuGet
 *.nupkg
