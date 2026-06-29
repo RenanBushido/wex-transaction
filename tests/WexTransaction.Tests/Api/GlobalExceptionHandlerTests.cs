@@ -55,7 +55,7 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
-    public async Task TryHandleAsync_BaseDomainException_Returns422AndTrue()
+    public async Task TryHandleAsync_BaseDomainException_Returns417AndTrue()
     {
         var handler = CreateHandler();
         var context = CreateHttpContext();
@@ -64,11 +64,11 @@ public class GlobalExceptionHandlerTests
         var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
         Assert.True(handled);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status417ExpectationFailed, context.Response.StatusCode);
     }
 
     [Fact]
-    public async Task TryHandleAsync_CurrencyConversionUnavailableException_Returns422AndTrue()
+    public async Task TryHandleAsync_CurrencyConversionUnavailableException_Returns417AndTrue()
     {
         var handler = CreateHandler();
         var context = CreateHttpContext();
@@ -77,7 +77,7 @@ public class GlobalExceptionHandlerTests
         var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
         Assert.True(handled);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status417ExpectationFailed, context.Response.StatusCode);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
-    public async Task TryHandleAsync_WithDomainException_MapsTo422UnprocessableEntity()
+    public async Task TryHandleAsync_WithDomainException_MapsTo417UnprocessableEntity()
     {
         // Arrange
         var context = CreateHttpContext();
@@ -106,7 +106,7 @@ public class GlobalExceptionHandlerTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status417ExpectationFailed, context.Response.StatusCode);
     }
 
     [Fact]

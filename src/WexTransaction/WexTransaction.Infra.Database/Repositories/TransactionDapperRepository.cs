@@ -13,9 +13,14 @@ public class TransactionDapperRepository(IDbConnection connection) : ITransactio
 
     public async Task<PurchaseTransaction?> GetByIdAsync(Guid id)
     {
-        var query = "SELECT * FROM 'tb_purchase_transaction' WHERE 'transaction_id' = @transactionId";
+        var query = "SELECT " + 
+            "transaction_id as Id," +
+            "transaction_description as Description," +
+            "transaction_date as TransactionDate," +
+            "transaction_amount::DECIMAL as Amount " +
+            "FROM tb_purchase_transaction WHERE transaction_id = @transactionId::uuid";
 
-        return await _connection.QueryFirstOrDefaultAsync<PurchaseTransaction>(query, new { transactionId = id }) ?? null!;
+        return await _connection.QueryFirstOrDefaultAsync<PurchaseTransaction>(query, new { transactionId = id.ToString() }) ?? null!;
     }
 
     #endregion

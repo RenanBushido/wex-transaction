@@ -11,24 +11,13 @@ public static class ExternalApiExtensions
 
         var timeoutSeconds = configuration.GetValue<int?>("TreasuryApi:TimeoutSeconds") ?? 30;
 
-        services
-            .AddHttpClient<ITreasuryExchangeRateClient>(client =>
-            {
-                client.BaseAddress = new Uri(treasuryApiUrl);
-                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
-            })
+        services.AddRefitClient<ITreasuryExchangeRateClient>()
             .ConfigureHttpClient(client =>
             {
                 client.BaseAddress = new Uri(treasuryApiUrl);
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             })
             .AddTreasuryApiPolicies();
-
-        services.AddScoped(sp =>
-        {
-            var httpClient = sp.GetRequiredService<HttpClient>();
-            return RestService.For<ITreasuryExchangeRateClient>(httpClient);
-        });
 
         services.AddScoped<IExchangeRateProvider, TreasuryExchangeRateProvider>();
 

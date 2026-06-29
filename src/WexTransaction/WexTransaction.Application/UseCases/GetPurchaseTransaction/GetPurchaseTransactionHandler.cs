@@ -19,7 +19,7 @@ public sealed class GetPurchaseTransactionHandler(
 
         if(transaction is null) return null!;
 
-        var exchangeRates = await _exchangeRate.GetExchangeRatesAsync(request.Country, request.Currency);
+        var exchangeRates = await _exchangeRate.GetExchangeRatesAsync(transaction.TransactionDate.ToString("yyyy-MM-dd"), request.Country, request.Currency);
         var convertResult = ExchangeRateSelector.Convert(transaction, exchangeRates);
 
         return new GetPurchaseTransactionResponse(

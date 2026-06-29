@@ -10,7 +10,7 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
     #endregion
 
     #region Public Methods
-    public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync(string country, string currency)
+    public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync(string date, string country, string currency)
     {
         var cacheKey = $"{country}_{currency}";
 
@@ -21,19 +21,26 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
 
         try
         {
-            var filter = $"country:{country} and currency:{currency}";
-            var response = await _client.GetExchangeRatesAsync(filter);
+            var fields = $"&fields=country_currency_desc,exchange_rate,record_date,effective_date";
+            var filter = $"&filter=country_currency_desc:in:({Capitalize(country)}-{Capitalize(currency)}),record_date:lte:{date}";
+            var sort = $"?sort=-record_date";
+
+            var response = await _client.GetExchangeRatesAsync("", fields, filter, 1);
 
             if (response?.Data == null || response.Data.Count == 0)
                 throw new CurrencyConversionUnavailableException(
                     $"No exchange rate found for country '{country}' and currency '{currency}'.");
 
             var exchangeRates = response.Data
-                .Where(d => d.Country != null && d.Currency != null && d.EffectiveDate != null)
+                .Where(d => d.Country_Currency_Desc != null && d.Exchange_Rate != 0 && d.Effective_Date != null)
                 .Select(d =>
                 {
-                    var effectiveDate = DateTimeOffset.Parse(d.EffectiveDate!);
-                    return new ExchangeRate(d.Country!, d.Currency!, d.ExchangeRate, effectiveDate);
+                    var effectiveDate = DateTimeOffset.Parse(d.Effective_Date!);
+                    var splitCountry = d.Country_Currency_Desc!.Split('-');
+                    return new ExchangeRate(splitCountry[0] ?? string.Empty,
+                                splitCountry[1] ?? string.Empty,
+                                d.Exchange_Rate,
+                                effectiveDate);
                 })
                 .ToList();
 
@@ -71,6 +78,16 @@ public class TreasuryExchangeRateProvider(ITreasuryExchangeRateClient client) : 
         public DateTime CachedAt { get; } = cachedAt;
 
         public bool IsExpired => DateTime.UtcNow - CachedAt > TimeSpan.FromHours(1);
+    }
+
+    private static string Capitalize(string str)
+    {
+        if (str == null) return null!;
+
+        if (str.Length > 1)
+            return char.ToUpper(str[0]) + str[1..];
+
+        return str.ToUpper();
     }
 
     #endregion

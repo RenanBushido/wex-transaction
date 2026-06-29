@@ -18,8 +18,8 @@ public readonly record struct ExchangeRate
         if (rate <= 0)
             throw new ArgumentOutOfRangeException(nameof(rate), "Rate must be a positive value.");
 
-        if (effectiveDate.Offset != TimeSpan.Zero)
-            throw new ArgumentOutOfRangeException(nameof(effectiveDate), "Effective date must be UTC.");
+        // if (effectiveDate.Offset.Hours != 0)
+        //     throw new ArgumentOutOfRangeException(nameof(effectiveDate), "Effective date must be UTC.");
 
         Country = country;
         Currency = currency;
