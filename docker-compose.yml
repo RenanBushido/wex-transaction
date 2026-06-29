@@ -34,7 +34,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection:-Host=db;Port=5432;Database=${POSTGRES_DB:-wextransaction};Username=${POSTGRES_USER:-wexuser};Password=${POSTGRES_PASSWORD:-wexpassword};}
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__WexTransactionConnection:-Host=db;Port=5432;Database=${POSTGRES_DB:-wextransaction};Username=${POSTGRES_USER:-wexuser};Password=${POSTGRES_PASSWORD:-wexpassword};}
       RateLimiting__PostPolicy__PermitLimit: ${RateLimiting__PostPolicy__PermitLimit:-10}
       RateLimiting__PostPolicy__Window: ${RateLimiting__PostPolicy__Window:-00:01:00}
       RateLimiting__GetPolicy__PermitLimit: ${RateLimiting__GetPolicy__PermitLimit:-30}
@@ -64,3 +64,4 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local

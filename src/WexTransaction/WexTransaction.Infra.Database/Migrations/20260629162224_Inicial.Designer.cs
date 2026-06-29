@@ -12,8 +12,8 @@ using WexTransaction.Infra.Database.Data;
 namespace WexTransaction.Infra.Database.Migrations
 {
     [DbContext(typeof(WexTransactionDbContext))]
-    [Migration("20260629104716_Ajuste do Campo Amount_1")]
-    partial class AjustedoCampoAmount_1
+    [Migration("20260629162224_Inicial")]
+    partial class Inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,8 +32,8 @@ namespace WexTransaction.Infra.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("transaction_id");
 
-                    b.Property<long>("Amount")
-                        .HasColumnType("BIGINT")
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(19, 4)")
                         .HasColumnName("transaction_amount");
 
                     b.Property<DateTime>("CreatedAt")

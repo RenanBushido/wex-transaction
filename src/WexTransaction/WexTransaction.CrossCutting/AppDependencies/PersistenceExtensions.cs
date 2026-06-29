@@ -7,7 +7,7 @@ public static class PersistenceExtensions
         IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("WexTransactionConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            ?? throw new InvalidOperationException("Connection string 'WexTransactionConnection' not found.");
 
         SqlMapper.AddTypeHandler(new MoneyTypeHandler());
         SqlMapper.AddTypeHandler(new TransactionDescriptionTypeHandler());

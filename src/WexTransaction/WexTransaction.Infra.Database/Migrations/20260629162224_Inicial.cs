@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WexTransaction.Infra.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDatabase : Migration
+    public partial class Inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace WexTransaction.Infra.Database.Migrations
                     transaction_id = table.Column<Guid>(type: "uuid", nullable: false),
                     transaction_description = table.Column<string>(type: "varchar", maxLength: 50, nullable: false),
                     transaction_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    transaction_amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    transaction_amount = table.Column<decimal>(type: "numeric(19,4)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

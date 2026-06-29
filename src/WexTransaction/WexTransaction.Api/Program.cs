@@ -54,7 +54,7 @@ try
 
     // Ensure database directory exists with proper permissions (755) for Docker volume mounts.
     // This must happen before migrations execute.
-    app.EnsureDatabaseDirectory();
+    // app.EnsureDatabaseDirectory();
 
     // Apply pending EF Core migrations before accepting requests.
     // This ensures the database schema is initialized and up-to-date.

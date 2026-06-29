@@ -29,8 +29,8 @@ namespace WexTransaction.Infra.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("transaction_id");
 
-                    b.Property<long>("Amount")
-                        .HasColumnType("BIGINT")
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(19, 4)")
                         .HasColumnName("transaction_amount");
 
                     b.Property<DateTime>("CreatedAt")
