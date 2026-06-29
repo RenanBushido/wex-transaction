@@ -1,28 +1,30 @@
 # Multi-stage build for WEX Transaction API
 # Stage 1: Build stage
-FROM mcr.microsoft.com/dotnet/sdk:10 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["src/WexTransaction/WexTransaction.sln", "."]
-COPY ["src/WexTransaction/WexTransaction.Api/WexTransaction.Api.csproj", "WexTransaction.Api/"]
-COPY ["src/WexTransaction/WexTransaction.Application/WexTransaction.Application.csproj", "WexTransaction.Application/"]
-COPY ["src/WexTransaction/WexTransaction.Domain/WexTransaction.Domain.csproj", "WexTransaction.Domain/"]
-COPY ["src/WexTransaction/WexTransaction.Infra.Database/WexTransaction.Infra.Database.csproj", "WexTransaction.Infra.Database/"]
-COPY ["src/WexTransaction/WexTransaction.CrossCutting/WexTransaction.CrossCutting.csproj", "WexTransaction.CrossCutting/"]
+COPY ["src/WexTransaction/WexTransaction.slnx", "WexTransaction/"]
+COPY ["src/WexTransaction/WexTransaction.Api/WexTransaction.Api.csproj", "WexTransaction/WexTransaction.Api/"]
+COPY ["src/WexTransaction/WexTransaction.Application/WexTransaction.Application.csproj", "WexTransaction/WexTransaction.Application/"]
+COPY ["src/WexTransaction/WexTransaction.Domain/WexTransaction.Domain.csproj", "WexTransaction/WexTransaction.Domain/"]
+COPY ["src/WexTransaction/WexTransaction.Infra.Database/WexTransaction.Infra.Database.csproj", "WexTransaction/WexTransaction.Infra.Database/"]
+COPY ["src/WexTransaction/WexTransaction.CrossCutting/WexTransaction.CrossCutting.csproj", "WexTransaction/WexTransaction.CrossCutting/"]
+COPY ["src/WexTransaction/WexTransaction.Infra.Services.RatesExchange/WexTransaction.Infra.Services.RatesExchange.csproj", "WexTransaction/WexTransaction.Infra.Services.RatesExchange/"]
 
 # Restore NuGet packages
-RUN dotnet restore "WexTransaction.sln"
+WORKDIR /src/WexTransaction
+RUN dotnet restore "WexTransaction.slnx"
 
-# Copy all source code
-COPY ["src/", "."]
+# Copy remaining source code
+COPY ["src/WexTransaction/", "."]
 
 # Publish with Release configuration
 RUN dotnet publish "WexTransaction.Api/WexTransaction.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Stage 2: Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
 WORKDIR /app
 
