@@ -505,6 +505,58 @@ To add a new extension (e.g., Logging, Caching, Authentication):
 
 ---
 
+## Application Startup Sequence
+
+The application follows a strict initialization sequence in `Program.cs` to ensure all infrastructure is properly set up before handling requests.
+
+### Startup Order
+
+```csharp
+var app = builder.Build();
+
+// 1. Ensure database directory exists with proper permissions (755)
+//    This must happen BEFORE migrations execute.
+//    Location: WexTransaction.Infra.Database.Extensions.DatabaseDirectoryExtensions
+app.EnsureDatabaseDirectory();
+
+// 2. Apply pending EF Core migrations
+//    Creates database and tables if they don't exist
+//    Location: WexTransaction.Infra.Database.Extensions.DatabaseExtensions
+app.MigrateDatabase();
+
+// 3. Configure middleware pipeline
+app.UseSerilogRequestLogging();
+app.UseExceptionHandler();
+app.UseApiCors();
+app.UseRateLimiter();
+
+// 4. Map endpoints
+app.MapTransactionEndpoints();
+app.MapHealthChecks("/health");
+
+await app.RunAsync();
+```
+
+### Database Directory Setup
+
+**Purpose**: Ensure the `database/` directory exists with proper permissions (755/rwxr-xr-x) before PostgreSQL Docker containers attempt to mount it as a volume.
+
+**Implementation**: 
+- Extension method: `EnsureDatabaseDirectory()` in `WexTransaction.Infra.Database.Extensions.DatabaseDirectoryExtensions`
+- Called during application startup, before migrations
+- Platform-aware: Sets Unix permissions (755) on Linux/macOS, no-op on Windows (NTFS)
+- Non-blocking: Logs warnings if it fails, application continues (PostgreSQL will report specific errors)
+
+**Behavior**:
+1. Locates project root by looking for `docker-compose.yml`, `.git`, or `CLAUDE.md`
+2. Creates `database/` directory if missing
+3. Sets Unix permissions to 755 (rwxr-xr-x) on supported platforms
+4. Logs initialization details for debugging
+
+**Idempotency**: Safe to call multiple times; directory creation and permission setting are idempotent operations.
+
+---
+
 ## Development Roadmap (Phases)
 
 ### Phase 2A (Current) ✓
