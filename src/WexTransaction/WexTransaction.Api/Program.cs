@@ -14,6 +14,7 @@ try
     builder.Services.AddApiCors(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddExternalApis(builder.Configuration);
+    builder.Services.AddApplicationHealthChecks(builder.Configuration);
     builder.Services.AddSerilogLogging(builder.Configuration);
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
@@ -34,6 +35,18 @@ try
     app.UseApiCors();
     app.UseHttpsRedirection();
     app.MapTransactionEndpoints();
+
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        Predicate = _ => false,
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = r => r.Tags.Contains("ready"),
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
 
     await app.RunAsync();
 }

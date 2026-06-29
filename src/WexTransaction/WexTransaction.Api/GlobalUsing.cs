@@ -11,4 +11,6 @@ global using WexTransaction.CrossCutting.AppDependencies;
 global using WexTransaction.Domain.Exceptions;
 global using Serilog;
 global using Serilog.Events;
+global using HealthChecks.UI.Client;
+global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 

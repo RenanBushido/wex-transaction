@@ -18,3 +18,6 @@ global using System.Data;
 global using Npgsql;
 global using Dapper;
 global using WexTransaction.Infra.Database.TypeHandlers;
+global using HealthChecks.UI.Client;
+global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;

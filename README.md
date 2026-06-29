@@ -112,23 +112,46 @@ date of the purchase.
   - Response (404): Transaction not found
   - Response (400): Invalid currency/country or conversion unavailable
 
+### Health Check Endpoints
+
+- **GET /health** — Liveness probe (Kubernetes `livenessProbe`): returns 200 if the process is running, regardless of dependency availability
+- **GET /health/ready** — Readiness probe (Kubernetes `readinessProbe`): returns 200 if PostgreSQL and Treasury API are reachable; 503 otherwise
+
+Both endpoints return a structured JSON response with individual check status:
+```json
+{
+  "status": "Healthy",
+  "entries": {
+    "postgresql": { "status": "Healthy", "duration": "00:00:00.012" },
+    "treasury-api": { "status": "Healthy", "duration": "00:00:00.245" }
+  }
+}
+```
+
 ### Exception Handling
 
 - **GlobalExceptionHandler**: Middleware for centralized exception handling
-  - Maps domain exceptions to HTTP status codes (422 Unprocessable Entity)
+  - Maps domain exceptions to HTTP status codes (417 Expectation Failed)
   - Maps validation exceptions to 400 Bad Request
   - Maps unhandled exceptions to 500 Internal Server Error
   - Returns ProblemDetails response format
+  - Logs all exceptions with full stack trace via Serilog
 
 ### Service Registration Pattern
 
 Services are registered via extension methods in `WexTransaction.CrossCutting/AppDependencies/`:
 
-- **PersistenceExtensions**: Registers DbContext, repositories, and Unit of Work
-- **ApplicationExtensions**: Registers MediatR, AutoMapper, and validators
-- **ExternalApiExtensions**: Registers Refit client for Treasury API
+| Extension | Responsibility |
+|-----------|---------------|
+| `PersistenceExtensions` | DbContext (EF Core + Dapper), repositories, Unit of Work |
+| `ApplicationExtensions` | MediatR, AutoMapper, FluentValidation |
+| `ExternalApiExtensions` | Refit client for Treasury API, Polly resilience policies |
+| `ResiliencePoliciesExtensions` | Retry, Circuit Breaker, Timeout (Polly) |
+| `CorsExtensions` | CORS policy per environment |
+| `LoggingExtensions` | Serilog two-stage initialization |
+| `HealthCheckExtensions` | PostgreSQL and Treasury API health checks |
 
-## Infrastructure - Resilience & External APIs
+## Infrastructure - Resilience, Observability & External APIs
 
 ### Polly Resilience Policies
 
@@ -144,6 +167,14 @@ These policies wrap the `ITreasuryExchangeRateClient` (Refit) to ensure:
 - Prevention of cascading failures
 - Automatic recovery detection
 - Request timeout protection
+
+### Structured Logging (Serilog)
+
+- **Two-stage initialization**: Bootstrap logger captures startup errors before host is built
+- **ReadFrom.Configuration()**: Log levels and sinks configured via `appsettings.json` / `appsettings.Development.json`
+- **UseSerilogRequestLogging()**: One log event per HTTP request (replaces verbose ASP.NET Core default logs)
+- **Structured templates**: All log calls use named parameters (e.g., `"Transaction {TransactionId} not found"`)
+- **Environment-aware levels**: `Debug` in Development, `Information` in Production
 
 ### External API Integration
 
@@ -363,8 +394,8 @@ dotnet ef database update -p src/WexTransaction/WexTransaction.Infra.Database -s
 
 - [ ] Authentication & Authorization (JWT, roles-based access)
 - [ ] Rate limiting and API throttling
-- [ ] Comprehensive API logging and correlation IDs
+- [ ] Correlation IDs for distributed tracing
 - [ ] Event-driven architecture for audit trails (Event Sourcing)
 - [ ] Caching layer (Redis) for exchange rates
 - [ ] API versioning strategy
-- [ ] GraphQL support (alternative to REST)
+- [ ] Kubernetes manifest with `livenessProbe` and `readinessProbe` wired to `/health` and `/health/ready`
