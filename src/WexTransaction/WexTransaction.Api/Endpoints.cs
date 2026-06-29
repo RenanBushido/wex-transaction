@@ -39,7 +39,7 @@ public static class Endpoints
         return Results.Created($"/api/v1/transaction/{transactionId}", new SaveTransactionResponse(transactionId));
     }
 
-    private static async Task<IResult> GetTransaction(
+    public static async Task<IResult> GetTransaction(
         Guid id,
         string country,
         string currency,

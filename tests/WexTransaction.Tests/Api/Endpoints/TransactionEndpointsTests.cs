@@ -1,5 +1,11 @@
 namespace WexTransaction.Tests.Api.Endpoints;
 
+using WexTransaction.Api;
+using WexTransaction.Application.UseCases.GetPurchaseTransaction;
+using WexTransaction.Application.UseCases.SavePurchaseTransaction;
+using Moq;
+using MediatR;
+
 public class TransactionEndpointsTests
 {
     private readonly Mock<IMediator> _mockMediator;
@@ -54,6 +60,57 @@ public class TransactionEndpointsTests
                     cmd.Date == ValidDate &&
                     cmd.Amount == ValidAmount),
                 It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTransaction_WithValidInput_DisptachesCorrectQuery()
+    {
+        // Arrange
+        var transactionId = Guid.NewGuid();
+        var country = "Brazil";
+        var currency = "BRL";
+        var response = new GetPurchaseTransactionResponse(
+            transactionId, "Coffee", DateTime.UtcNow, 100m, 5.25m, 525m);
+
+        _mockMediator
+            .Setup(m => m.Send(It.IsAny<GetPurchaseTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+
+        // Act
+        var result = await WexTransaction.Api.Endpoints.GetTransaction(
+            transactionId, country, currency, _mockMediator.Object, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        _mockMediator.Verify(
+            m => m.Send(
+                It.Is<GetPurchaseTransactionRequest>(q =>
+                    q.TransactionId == transactionId &&
+                    q.Country == country &&
+                    q.Currency == currency),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTransaction_WithNonExistentId_ReturnsNotFound()
+    {
+        // Arrange
+        var transactionId = Guid.NewGuid();
+
+        _mockMediator
+            .Setup(m => m.Send(It.IsAny<GetPurchaseTransactionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((GetPurchaseTransactionResponse)null!);
+
+        // Act
+        var result = await WexTransaction.Api.Endpoints.GetTransaction(
+            transactionId, "Brazil", "BRL", _mockMediator.Object, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        _mockMediator.Verify(
+            m => m.Send(It.IsAny<GetPurchaseTransactionRequest>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }
