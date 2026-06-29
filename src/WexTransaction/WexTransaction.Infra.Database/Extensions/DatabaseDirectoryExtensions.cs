@@ -121,13 +121,19 @@ public static class DatabaseDirectoryExtensions
 
     /// <summary>
     /// Sets Unix file permissions to 755 (rwxr-xr-x) on the directory.
+    /// Only called on Unix-based systems (Linux, macOS).
     /// </summary>
     /// <remarks>
     /// This method uses the <see cref="FileInfo.UnixFileMode"/> property (available in .NET 5+)
-    /// to set permissions. On Windows, this method will throw an exception which should be caught.
+    /// to set permissions. Only called on non-Windows platforms.
     /// </remarks>
     private static void SetUnixPermissions(string directoryPath)
     {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return;
+        }
+
         var info = new DirectoryInfo(directoryPath);
 
         // 755 = rwxr-xr-x (owner: rwx, group: r-x, other: r-x)
