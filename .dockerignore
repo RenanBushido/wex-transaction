@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+
+# Test artifacts
+TestResults/
+.coverage
+*.trx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.user
+*.suo
+.vs/
+
+# Node (if applicable)
+node_modules/
+npm-debug.log
+
+# Docker
+.dockerignore
+Dockerfile
+
+# CI/CD
+.github/
+
+# Other
+.env
+.env.local
+database/
+*.log
+tmp/
+temp/

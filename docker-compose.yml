@@ -1,34 +1,67 @@
+version: '3.8'
+
 services:
-  postgres:
+  db:
     image: postgres:15.18-alpine3.23
     container_name: wex-postgres
     environment:
-      POSTGRES_DB: WexTransactionDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-wexuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wexpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-wextransaction}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./database:/var/lib/postgresql/data
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wex-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d WexTransactionDB"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wexuser} -d ${POSTGRES_DB:-wextransaction}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
-  # api:
-  #   build: .
-  #   container_name: wex-api
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 40s
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wex-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection:-Host=db;Port=5432;Database=${POSTGRES_DB:-wextransaction};Username=${POSTGRES_USER:-wexuser};Password=${POSTGRES_PASSWORD:-wexpassword};}
+      RateLimiting__PostPolicy__PermitLimit: ${RateLimiting__PostPolicy__PermitLimit:-10}
+      RateLimiting__PostPolicy__Window: ${RateLimiting__PostPolicy__Window:-00:01:00}
+      RateLimiting__GetPolicy__PermitLimit: ${RateLimiting__GetPolicy__PermitLimit:-30}
+      RateLimiting__GetPolicy__Window: ${RateLimiting__GetPolicy__Window:-00:01:00}
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+networks:
+  wex-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
