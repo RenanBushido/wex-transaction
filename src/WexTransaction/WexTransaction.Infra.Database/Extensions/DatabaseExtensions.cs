@@ -34,7 +34,7 @@ public static class DatabaseExtensions
     public static WebApplication MigrateDatabase(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("WexTransaction.Infra.Database.Extensions");
 
         try
         {
