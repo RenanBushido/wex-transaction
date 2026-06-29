@@ -81,7 +81,7 @@ public class GlobalExceptionHandlerTests
     }
 
     [Fact]
-    public async Task TryHandleAsync_GenericException_ReturnsFalse()
+    public async Task TryHandleAsync_GenericException_Returns500AndTrue()
     {
         var handler = CreateHandler();
         var context = CreateHttpContext();
@@ -89,7 +89,56 @@ public class GlobalExceptionHandlerTests
 
         var handled = await handler.TryHandleAsync(context, exception, CancellationToken.None);
 
-        Assert.False(handled);
+        Assert.True(handled);
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithDomainException_MapsTo422UnprocessableEntity()
+    {
+        // Arrange
+        var context = CreateHttpContext();
+        var exception = new DomainException("Generic domain error");
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithValidationException_MapsTo400BadRequest()
+    {
+        // Arrange
+        var context = CreateHttpContext();
+        var validationException = new FluentValidation.ValidationException("Validation failed");
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.TryHandleAsync(context, validationException, CancellationToken.None);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(StatusCodes.Status400BadRequest, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_WithUnhandledException_MapsTo500InternalServerError()
+    {
+        // Arrange
+        var context = CreateHttpContext();
+        var exception = new Exception("Unexpected error");
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.TryHandleAsync(context, exception, CancellationToken.None);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
     }
 
     private sealed class AlwaysTrueProblemDetailsService : IProblemDetailsService

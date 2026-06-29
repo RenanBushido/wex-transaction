@@ -13,17 +13,26 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
         Exception exception,
         CancellationToken cancellationToken)
     {
-        if (exception is not DomainException)
-            return false;
+        int statusCode;
 
-        var statusCode = exception switch
+        if (exception is DomainException domainException)
         {
-            ValidationException => StatusCodes.Status400BadRequest,            
-            InvalidAmountException => StatusCodes.Status400BadRequest,
-            InvalidDescriptionException => StatusCodes.Status400BadRequest,
-            InvalidTransactionDateException => StatusCodes.Status400BadRequest,
-            _ => StatusCodes.Status422UnprocessableEntity
-        };
+            statusCode = domainException switch
+            {
+                InvalidAmountException => StatusCodes.Status400BadRequest,
+                InvalidDescriptionException => StatusCodes.Status400BadRequest,
+                InvalidTransactionDateException => StatusCodes.Status400BadRequest,
+                _ => StatusCodes.Status422UnprocessableEntity
+            };
+        }
+        else if (exception is FluentValidation.ValidationException)
+        {
+            statusCode = StatusCodes.Status400BadRequest;
+        }
+        else
+        {
+            statusCode = StatusCodes.Status500InternalServerError;
+        }
 
         httpContext.Response.StatusCode = statusCode;
 
@@ -34,11 +43,20 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
             ProblemDetails = new ProblemDetails
             {
                 Status = statusCode,
-                Title = statusCode == StatusCodes.Status400BadRequest ? "Bad Request" : "Unprocessable Entity",
+                Title = GetTitle(statusCode),
                 Detail = exception.Message
             }
         });
     }
+
+    private static string GetTitle(int statusCode) =>
+        statusCode switch
+        {
+            StatusCodes.Status400BadRequest => "Bad Request",
+            StatusCodes.Status422UnprocessableEntity => "Unprocessable Entity",
+            StatusCodes.Status500InternalServerError => "Internal Server Error",
+            _ => "Error"
+        };
 
     #endregion
 }
