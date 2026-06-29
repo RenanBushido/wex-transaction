@@ -9,13 +9,15 @@ public static class Endpoints
 
         group.MapPost("/transaction", SaveTransaction)
             .WithName("SaveTransaction")
-            .WithDescription("Save a new purchase transaction")            
+            .WithDescription("Save a new purchase transaction")
+            .RequireRateLimiting("post-policy")
             .Produces<SaveTransactionResponse>(StatusCodes.Status201Created, "application/json")
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapGet("/transaction/{id}/location/{country}-{currency}", GetTransaction)
             .WithName("GetTransaction")
             .WithDescription("Retrieve transaction with currency conversion")
+            .RequireRateLimiting("get-policy")
             .Produces<GetPurchaseTransactionResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest);

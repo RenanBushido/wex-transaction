@@ -15,6 +15,34 @@ try
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddExternalApis(builder.Configuration);
     builder.Services.AddApplicationHealthChecks(builder.Configuration);
+
+    var rateLimitingConfig = builder.Configuration.GetSection("RateLimiting")
+        ?? throw new InvalidOperationException("Configuration section 'RateLimiting' not found");
+    var policies = rateLimitingConfig.GetSection("Policies");
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        foreach (var policy in policies.GetChildren())
+        {
+            var permitLimit = policy.GetValue<int>("PermitLimit");
+            var windowSeconds = policy.GetValue<int>("WindowSeconds");
+
+            options.AddSlidingWindowLimiter(policy.Key, slidingWindowOptions =>
+            {
+                slidingWindowOptions.PermitLimit = permitLimit;
+                slidingWindowOptions.Window = TimeSpan.FromSeconds(windowSeconds);
+                slidingWindowOptions.SegmentsPerWindow = 8;
+            });
+        }
+
+        options.OnRejected = async (context, cancellationToken) =>
+        {
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await context.HttpContext.Response.WriteAsync(
+                "Rate limit exceeded. Too many requests.", cancellationToken);
+        };
+    });
+
     builder.Services.AddSerilogLogging(builder.Configuration);
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
@@ -33,6 +61,7 @@ try
     app.UseSerilogRequestLogging();
     app.UseExceptionHandler();
     app.UseApiCors();
+    app.UseRateLimiter();
     app.UseHttpsRedirection();
     app.MapTransactionEndpoints();
 

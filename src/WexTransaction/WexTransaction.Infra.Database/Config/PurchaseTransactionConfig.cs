@@ -30,11 +30,17 @@ public sealed class PurchaseTransactionConfig : IEntityTypeConfiguration<Purchas
             .HasConversion(transactionDescriptionConverter)
             .IsRequired();
 
+        // builder.Property(p => p.Amount)
+        //     .HasColumnName("transaction_amount")
+        //     .HasPrecision(18,2)
+        //     .HasConversion(moneyConverter)
+        //     .IsRequired();
+
         builder.Property(p => p.Amount)
-            .HasColumnName("transaction_amount")
-            .HasPrecision(18,2)
-            .HasConversion(moneyConverter)
-            .IsRequired();
+                    .HasColumnName("transaction_amount")
+                    .HasColumnType("decimal(19, 4)")
+                    .IsRequired();
+
 
         builder.ToTable("tb_purchase_transaction");
     }

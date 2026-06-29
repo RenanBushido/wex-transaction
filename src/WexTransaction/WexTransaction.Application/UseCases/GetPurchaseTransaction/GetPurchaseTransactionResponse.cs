@@ -4,7 +4,7 @@ public record GetPurchaseTransactionResponse(
     Guid TransactionId,
     string Description,
     DateTime Date,
-    decimal Amount,
-    decimal TaxRate,
-    decimal ConvertedValue
+    string Amount,
+    string TaxRate,
+    string ConvertedValue
 );

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 
 namespace WexTransaction.Application.UseCases.GetPurchaseTransaction;
@@ -39,9 +40,9 @@ public sealed class GetPurchaseTransactionHandler(
             TransactionId: transaction.Id,
             Description: transaction.Description,
             Date: convertResult.TransactionDate.Date,
-            Amount: transaction.Amount,
-            TaxRate: convertResult.ExchangeRateUsed,
-            ConvertedValue: convertResult.ConvertedAmount
+            Amount: transaction.Amount.ToString(),
+            TaxRate: convertResult.ExchangeRateUsed.ToString(),
+            ConvertedValue: convertResult.ConvertedAmount.ToString()
         );
     }
 

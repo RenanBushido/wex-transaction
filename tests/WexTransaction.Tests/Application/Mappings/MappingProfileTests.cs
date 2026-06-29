@@ -39,7 +39,7 @@ public class MappingProfileTests
         Assert.NotNull(response);
         Assert.Equal(transaction.Id, response.TransactionId);
         Assert.Equal((string)transaction.Description, response.Description);
-        Assert.Equal((decimal)transaction.Amount, response.Amount);
+        Assert.Equal(transaction.Amount.ToString(), response.Amount);
         Assert.Equal(transaction.TransactionDate, response.Date);
     }
 
@@ -55,6 +55,6 @@ public class MappingProfileTests
         // Assert
         // Value object conversions via implicit operators
         Assert.Equal("Book purchase", response.Description);
-        Assert.Equal(50.25m, response.Amount);
+        Assert.Equal("50.25", response.Amount);
     }
 }

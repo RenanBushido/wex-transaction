@@ -135,9 +135,9 @@ public class GetPurchaseTransactionRequestTests
         var transactionId = Guid.NewGuid();
         var description = "Test Transaction";
         var date = DateTime.UtcNow;
-        var amount = 100.50m;
-        var taxRate = 5.25m;
-        var convertedValue = 526.25m;
+        var amount = "100.50";
+        var taxRate = "5.25";
+        var convertedValue = "526.25";
 
         // Act
         var response = new GetPurchaseTransactionResponse(
@@ -164,7 +164,7 @@ public class GetPurchaseTransactionRequestTests
         // Arrange
         var id = Guid.NewGuid();
         var date = DateTime.UtcNow;
-        var response1 = new GetPurchaseTransactionResponse(id, "Test", date, 100m, 5m, 500m);
+        var response1 = new GetPurchaseTransactionResponse(id, "Test", date, "100.00", "5.00", "500.00");
         var response2 = response1 with { }; // Use 'with' to create exact copy
 
         // Act & Assert

@@ -119,9 +119,9 @@ public class PurchaseTransactionConfigTests
         // Assert
         Assert.NotNull(queried);
         Assert.IsType<TransactionDescription>(queried.Description);
-        Assert.IsType<Money>(queried.Amount);
+        Assert.IsType<decimal>(queried.Amount);
         Assert.Equal(description, queried.Description.Value);
-        Assert.Equal(amount, queried.Amount.Value);
+        Assert.Equal(amount, queried.Amount);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class PurchaseTransactionConfigTests
         Assert.Equal(4, queried.Count);
         foreach (var item in queried)
         {
-            Assert.Contains(item.Amount.Value, amounts);
+            Assert.Contains(item.Amount, amounts);
         }
     }
 

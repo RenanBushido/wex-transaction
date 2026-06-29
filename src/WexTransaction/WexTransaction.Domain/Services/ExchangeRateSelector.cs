@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace WexTransaction.Domain.Services;
 
 public static class ExchangeRateSelector
@@ -18,8 +20,11 @@ public static class ExchangeRateSelector
             throw new CurrencyConversionUnavailableException(
                 "No exchange rate is available within 6 months of the purchase date.");
 
+        decimal valueTransaction = decimal.Parse(transaction.Amount.ToString(), CultureInfo.InvariantCulture);
+        decimal valueTax = decimal.Parse(selectedRate.Value.Rate.ToString(), CultureInfo.InvariantCulture);
+
         var convertedAmount = Math.Round(
-            transaction.Amount.Value * selectedRate.Value.Rate,
+            valueTransaction * valueTax,
             2,
             MidpointRounding.AwayFromZero);
 
@@ -27,8 +32,8 @@ public static class ExchangeRateSelector
             transaction.Id,
             transaction.Description,
             transaction.TransactionDate,
-            transaction.Amount.Value,
-            selectedRate.Value.Rate,
+            valueTransaction,
+            valueTax,
             convertedAmount);
     }
 }

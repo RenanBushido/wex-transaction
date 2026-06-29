@@ -124,7 +124,7 @@ public class WexTransactionDbContextTests
         // Assert
         Assert.NotNull(queried);
         Assert.Equal(transaction.Description.Value, queried.Description.Value);
-        Assert.Equal(transaction.Amount.Value, queried.Amount.Value);
+        Assert.Equal(transaction.Amount, queried.Amount);
     }
 
     [Fact]
@@ -168,6 +168,6 @@ public class WexTransactionDbContextTests
         Assert.NotNull(queried);
         Assert.Equal(description, queried.Description.Value);
         Assert.Equal(date, queried.TransactionDate);
-        Assert.Equal(amount, queried.Amount.Value);
+        Assert.Equal(amount, queried.Amount);
     }
 }

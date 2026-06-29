@@ -64,7 +64,7 @@ public class TransactionEndpointsTests
         var country = "Brazil";
         var currency = "BRL";
         var response = new GetPurchaseTransactionResponse(
-            transactionId, "Coffee", DateTime.UtcNow, 100m, 5.25m, 525m);
+            transactionId, "Coffee", DateTime.UtcNow, "100.00", "5.25", "525.00");
 
         _mockMediator
             .Setup(m => m.Send(It.IsAny<GetPurchaseTransactionRequest>(), It.IsAny<CancellationToken>()))

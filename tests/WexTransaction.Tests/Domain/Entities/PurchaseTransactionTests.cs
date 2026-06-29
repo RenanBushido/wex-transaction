@@ -14,7 +14,7 @@ public class PurchaseTransactionTests
         Assert.NotEqual(Guid.Empty, transaction.Id);
         Assert.Equal(_validDescription, transaction.Description.Value);
         Assert.Equal(ValidDate, transaction.TransactionDate);
-        Assert.Equal(ValidAmount, transaction.Amount.Value);
+        Assert.Equal(ValidAmount, transaction.Amount);
     }
 
     [Fact]

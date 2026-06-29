@@ -48,8 +48,8 @@ public class GetPurchaseTransactionHandlerTests
         Assert.NotNull(result);
         Assert.Equal(transaction.Id, result.TransactionId);
         Assert.Equal((string)transaction.Description, result.Description);
-        Assert.Equal((decimal)transaction.Amount, result.Amount);
-        Assert.True(result.ConvertedValue > 0);
+        Assert.Equal(transaction.Amount.ToString(), result.Amount);
+        Assert.NotEmpty(result.ConvertedValue);
 
         _mockRepository.Verify(r => r.GetByIdAsync(transaction.Id), Times.Once);
         _mockExchangeRateProvider.Verify(e => e.GetExchangeRatesAsync(TransactionDate.ToString("yyyy-MM-dd"), Country, Currency), Times.Once);
@@ -102,7 +102,7 @@ public class GetPurchaseTransactionHandlerTests
         // Assert
         Assert.NotNull(result);
         // Expected: 50m * 3.50m = 175m
-        Assert.Equal(175m, result.ConvertedValue);
-        Assert.Equal(exchangeRate, result.TaxRate);
+        Assert.Equal("175.00", result.ConvertedValue);
+        Assert.Equal(exchangeRate.ToString("F2"), result.TaxRate);
     }
 }

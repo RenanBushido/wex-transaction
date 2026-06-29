@@ -128,6 +128,59 @@ Both endpoints return a structured JSON response with individual check status:
 }
 ```
 
+### Rate Limiting
+
+Rate limiting is enabled on all transaction endpoints to prevent abuse and ensure API stability. The API uses ASP.NET Core's built-in sliding window rate limiter with per-endpoint policies:
+
+**Default Limits (Production)**:
+- **POST /api/v1/transaction**: 10 requests per 1 minute
+- **GET /api/v1/transaction/{id}/location/{country}-{currency}**: 30 requests per 1 minute
+
+**Development Limits** (configured in `appsettings.Development.json`):
+- **POST /api/v1/transaction**: 100 requests per 1 minute
+- **GET /api/v1/transaction/{id}/location/{country}-{currency}**: 300 requests per 1 minute
+
+**Rate Limit Headers**:
+All responses include rate limit information:
+- `X-RateLimit-Limit`: Maximum requests allowed in the current window
+- `X-RateLimit-Remaining`: Requests remaining in the current window
+- `X-RateLimit-Reset`: Unix timestamp when the window resets
+
+**Rate Limit Exceeded (HTTP 429)**:
+When a client exceeds the rate limit, the API returns:
+```
+HTTP 429 Too Many Requests
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1719446460
+
+Rate limit exceeded. Too many requests.
+```
+
+**Customizing Rate Limits**:
+To adjust rate limits, edit the `appsettings.json` file:
+```json
+{
+  "RateLimiting": {
+    "Policies": {
+      "post-policy": {
+        "PermitLimit": 10,
+        "WindowSeconds": 60
+      },
+      "get-policy": {
+        "PermitLimit": 30,
+        "WindowSeconds": 60
+      }
+    }
+  }
+}
+```
+
+**Important Notes**:
+- Rate limits are **global** (not per-IP or per-user) — suitable for single-instance deployments
+- Rate limiting is applied **after** exception handling, so internal errors are still handled normally
+- For distributed deployments, consider Redis-backed rate limiting in future versions
+
 ### Exception Handling
 
 - **GlobalExceptionHandler**: Middleware for centralized exception handling
@@ -150,6 +203,7 @@ Services are registered via extension methods in `WexTransaction.CrossCutting/Ap
 | `CorsExtensions` | CORS policy per environment |
 | `LoggingExtensions` | Serilog two-stage initialization |
 | `HealthCheckExtensions` | PostgreSQL and Treasury API health checks |
+| `RateLimitingExtensions` | Per-endpoint rate limiting with sliding window algorithm |
 
 ## Infrastructure - Resilience, Observability & External APIs
 

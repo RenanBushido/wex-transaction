@@ -13,4 +13,5 @@ global using Serilog;
 global using Serilog.Events;
 global using HealthChecks.UI.Client;
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+global using Microsoft.AspNetCore.RateLimiting;
 

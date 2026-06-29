@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WexTransaction.Infra.Database.Data;
@@ -11,9 +12,11 @@ using WexTransaction.Infra.Database.Data;
 namespace WexTransaction.Infra.Database.Migrations
 {
     [DbContext(typeof(WexTransactionDbContext))]
-    partial class WexTransactionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629104716_Ajuste do Campo Amount_1")]
+    partial class AjustedoCampoAmount_1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
