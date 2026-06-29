@@ -459,6 +459,69 @@ If the application fails to start with a migration error:
    docker compose up -d
    ```
 
+### Database Directory Setup
+
+#### Automatic Directory Creation
+
+The application **automatically creates and manages the `database/` directory** at project root with proper permissions (755/rwxr-xr-x) during startup. This ensures Docker volume mounts work correctly for PostgreSQL data persistence.
+
+**How it works:**
+1. When the application starts, it checks if the `database/` directory exists
+2. If missing, the directory is created automatically
+3. On Unix-based systems (Linux, macOS), permissions are set to 755 (rwxr-xr-x)
+4. On Windows, NTFS permissions are used (Unix mode is a no-op)
+5. Logging records directory creation and any permission issues
+
+**No manual directory creation is needed** - just clone the project and run `docker-compose up`!
+
+#### Directory Permissions
+
+The `database/` directory must have permissions that allow the PostgreSQL container to read and write data files:
+
+```bash
+# Expected permissions
+ls -ld database/
+# Output: drwxr-xr-x  ... database/
+```
+
+If you encounter permission errors:
+
+```bash
+# Manually fix permissions if needed
+chmod 755 database/
+```
+
+#### Troubleshooting Directory Permission Issues
+
+If PostgreSQL container fails to start with permission errors:
+
+1. **Check directory exists**: 
+   ```bash
+   ls -la | grep database
+   ```
+
+2. **Verify permissions**:
+   ```bash
+   ls -ld database/
+   # Should show: drwxr-xr-x
+   ```
+
+3. **Fix permissions if needed**:
+   ```bash
+   chmod 755 database/
+   ```
+
+4. **Check application startup logs** for "database directory" messages:
+   ```bash
+   docker compose logs api | grep -i "database directory"
+   ```
+
+5. **On Windows (WSL2)**: Ensure the database folder is accessible from both Windows and Linux:
+   ```bash
+   # Check if accessible
+   ls -l database/
+   ```
+
 ## Architecture Decisions
 
 ### CQRS with MediatR
