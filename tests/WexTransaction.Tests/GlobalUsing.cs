@@ -30,3 +30,4 @@ global using WexTransaction.Infra.Database.Repositories;
 global using WexTransaction.CrossCutting.AppDependencies;
 global using WexTransaction.Infra.Services.RatesExchange.Providers;
 global using Microsoft.Extensions.Logging;
+global using Testcontainers.PostgreSql;
