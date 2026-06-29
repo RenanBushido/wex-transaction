@@ -8,6 +8,9 @@ public static class Endpoints
 {
     public static void MapTransactionEndpoints(this WebApplication app)
     {
+
+
+
         var group = app.MapGroup("/api/v1")
             .WithTags("Transactions");
 
@@ -25,7 +28,7 @@ public static class Endpoints
             .Produces(StatusCodes.Status400BadRequest);
     }
 
-    private static async Task<IResult> SaveTransaction(
+    public static async Task<IResult> SaveTransaction(
         SaveTransactionRequest request,
         IMediator mediator,
         CancellationToken cancellationToken)
