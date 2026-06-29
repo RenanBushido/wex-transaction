@@ -413,6 +413,98 @@ services.AddMediatR(config =>
 
 ---
 
+## CrossCutting Layer - Service Registration Pattern
+
+The CrossCutting layer (`WexTransaction.CrossCutting/AppDependencies/`) centralizes all dependency injection extensions using the Service Registration Pattern.
+
+### Location
+
+```
+WexTransaction.CrossCutting/
+├── AppDependencies/
+│   ├── ApplicationExtensions.cs      (Application services, MediatR, AutoMapper)
+│   └── PersistenceExtensions.cs      (EF Core, Repositories, Unit of Work)
+```
+
+### Extension Files
+
+**ApplicationExtensions.cs** — Registers application layer services:
+- MediatR with assembly scanning for handlers
+- AutoMapper with MappingProfile
+- FluentValidation validators
+- Pipeline behaviors (ValidationBehavior, UnhandledExceptionBehaviour)
+
+**PersistenceExtensions.cs** — Registers infrastructure persistence services:
+- DbContext (WexTransactionDbContext)
+- Repositories (ITransactionRepository, ITransactionDapperRepository)
+- Unit of Work (IUnitOfWork)
+
+**ExternalApiExtensions.cs** — Registers external API integrations:
+- Refit client (ITreasuryExchangeRateClient)
+- Resilience policies (Polly: Retry, CircuitBreaker, Timeout)
+- Exchange rate provider
+
+### Pattern
+
+Each extension file follows this structure:
+
+```csharp
+namespace WexTransaction.CrossCutting.AppDependencies;
+
+public static class {Responsibility}Extensions
+{
+    public static IServiceCollection Add{Responsibility}(
+        this IServiceCollection services,
+        IConfiguration configuration) // optional if no config needed
+    {
+        // 1. Register main services
+        services.AddScoped<IMyService, MyService>();
+        
+        // 2. Register dependent services
+        services.AddScoped<IDependency, Implementation>();
+        
+        // 3. Return for fluent chaining
+        return services;
+    }
+}
+```
+
+### Usage in Program.cs
+
+All extensions are called in dependency order:
+
+```csharp
+var builder = WebApplicationBuilder.CreateBuilder(args);
+
+// Register all extensions in dependency order
+builder.Services
+    .AddPersistence(builder.Configuration)      // Infrastructure first
+    .AddExternalApis(builder.Configuration)     // External APIs second
+    .AddApplicationServices();                   // Application layer last
+
+var app = builder.Build();
+
+// ... rest of configuration
+```
+
+### Adding a New Service Extension
+
+To add a new extension (e.g., Logging, Caching, Authentication):
+
+1. Create file: `WexTransaction.CrossCutting/AppDependencies/{Responsibility}Extensions.cs`
+2. Implement pattern: `Add{Responsibility}(this IServiceCollection, IConfiguration)`
+3. Register in Program.cs in appropriate order (dependencies first)
+4. Add tests in: `tests/WexTransaction.Tests/Infrastructure/Extensions/`
+
+### Dependency Order
+
+1. **Persistence** — DbContext, repositories (no external dependencies)
+2. **ExternalApis** — Refit clients, resilience policies (depends on IConfiguration)
+3. **Application** — MediatR, AutoMapper, validators (depends on persistence)
+4. **Middleware/Handlers** — Exception handlers, logging (depends on all above)
+
+---
+
 ## Development Roadmap (Phases)
 
 ### Phase 2A (Current) ✓
