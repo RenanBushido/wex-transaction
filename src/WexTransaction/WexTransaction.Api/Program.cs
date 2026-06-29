@@ -1,3 +1,5 @@
+using WexTransaction.Infra.Database.Extensions;
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .Enrich.FromLogContext()
@@ -49,6 +51,8 @@ try
     builder.Services.AddOpenApi();
 
     var app = builder.Build();
+
+    app.MigrateDatabase();
 
     if (app.Environment.IsDevelopment())
     {
