@@ -22,7 +22,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
                 InvalidAmountException => StatusCodes.Status400BadRequest,
                 InvalidDescriptionException => StatusCodes.Status400BadRequest,
                 InvalidTransactionDateException => StatusCodes.Status400BadRequest,
-                _ => StatusCodes.Status422UnprocessableEntity
+                _ => StatusCodes.Status417ExpectationFailed
             };
         }
         else if (exception is FluentValidation.ValidationException)
@@ -53,7 +53,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
         statusCode switch
         {
             StatusCodes.Status400BadRequest => "Bad Request",
-            StatusCodes.Status422UnprocessableEntity => "Unprocessable Entity",
+            StatusCodes.Status417ExpectationFailed => "Expectation failed",
             StatusCodes.Status500InternalServerError => "Internal Server Error",
             _ => "Error"
         };

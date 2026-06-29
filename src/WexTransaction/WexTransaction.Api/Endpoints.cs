@@ -4,13 +4,13 @@ public static class Endpoints
 {
     public static void MapTransactionEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1")
+        var group = app.MapGroup("/api/v1")            
             .WithTags("Transactions");
 
         group.MapPost("/transaction", SaveTransaction)
             .WithName("SaveTransaction")
-            .WithDescription("Save a new purchase transaction")
-            .Produces<SaveTransactionResponse>(StatusCodes.Status201Created)
+            .WithDescription("Save a new purchase transaction")            
+            .Produces<SaveTransactionResponse>(StatusCodes.Status201Created, "application/json")
             .Produces(StatusCodes.Status400BadRequest);
 
         group.MapGet("/transaction/{id}/location/{country}-{currency}", GetTransaction)
